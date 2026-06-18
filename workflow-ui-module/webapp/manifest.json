@@ -1,0 +1,311 @@
+{
+  "_version": "1.26.0",
+  "sap.app": {
+    "id": "glmgtnsp.workflowuimodule",
+    "type": "application",
+    "i18n": "i18n/i18n.properties",
+    "applicationVersion": {
+      "version": "0.0.1"
+    },
+    "title": "{{appTitle}}",
+    "description": "{{appDescription}}",
+    "resources": "resources.json",
+    "sourceTemplate": {
+      "id": "@sap/generator-fiori:basic",
+      "version": "1.8.4",
+      "toolsId": "1cec9640-0cd2-48f0-b118-00f44b5cbc14"
+    },
+    "dataSources": {
+      "mainService": {
+        "uri": "/sap/opu/odata/",
+        "type": "OData",
+        "settings": {
+          "annotations": [],
+          "localUri": "localService/metadata.xml",
+          "odataVersion": "2.0"
+        }
+      }
+    }
+  },
+  "sap.ui": {
+    "technology": "UI5",
+    "icons": {
+      "icon": "",
+      "favIcon": "",
+      "phone": "",
+      "phone@2": "",
+      "tablet": "",
+      "tablet@2": ""
+    },
+    "deviceTypes": {
+      "desktop": true,
+      "tablet": true,
+      "phone": true
+    }
+  },
+  "sap.ui5": {
+    "config": {
+      "dmsApiUrl": "https://sbpa_helper.cfapps.ap10.hana.ondemand.com/api/Dms/get-folder-items?folderId={FOLDER_ID}",
+      "tokenApiUrl": "https://sbpa_helper.cfapps.ap10.hana.ondemand.com/api/token"
+    },
+    "flexEnabled": true,
+    "dependencies": {
+      "minUI5Version": "1.82.2",
+      "libs": {
+        "sap.m": {},
+        "sap.ui.core": {},
+        "sap.f": {},
+        "sap.suite.ui.generic.template": {},
+        "sap.ui.comp": {},
+        "sap.ui.generic.app": {},
+        "sap.ui.table": {},
+        "sap.ushell": {}
+      }
+    },
+    "contentDensities": {
+      "compact": true,
+      "cozy": true
+    },
+    "models": {
+      "i18n": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "settings": {
+          "bundleName": "glmgtnsp.workflowuimodule.i18n.i18n"
+        }
+      },
+      "": {
+        "dataSource": "mainService",
+        "preload": true,
+        "settings": {}
+      }
+    },
+    "resources": {
+      "css": [
+        {
+          "uri": "https://sbpa_helper.cfapps.ap10.hana.ondemand.com/style.css"
+        }
+      ]
+    },
+    "routing": {
+      "config": {
+        "routerClass": "sap.m.routing.Router",
+        "viewType": "XML",
+        "async": true,
+        "viewPath": "glmgtnsp.workflowuimodule.view",
+        "controlAggregation": "pages",
+        "controlId": "app",
+        "clearControlAggregation": false
+      },
+      "routes": [
+        {
+          "name": "RouteorderApprovalForm",
+          "pattern": ":?query:",
+          "target": [
+            "TargetorderApprovalForm"
+          ]
+        }
+      ],
+      "targets": {
+        "TargetorderApprovalForm": {
+          "viewType": "XML",
+          "transition": "slide",
+          "clearControlAggregation": false,
+          "viewId": "orderApprovalForm",
+          "viewName": "orderApprovalForm"
+        }
+      }
+    },
+    "rootView": {
+      "viewName": "glmgtnsp.workflowuimodule.view.App",
+      "type": "XML",
+      "async": true,
+      "id": "App"
+    }
+  },
+  "sap.cloud": {
+    "public": true,
+    "service": "glsmanagement"
+  },
+  "sap.bpa.task": {
+    "_version": "1.0.0",
+    "outcomes": [
+      {
+        "id": "approve",
+        "label": "Approve"
+      },
+      {
+        "id": "reject",
+        "label": "Reject"
+      }
+    ],
+    "inputs": {
+      "$schema": "http://json-schema.org/draft-07/schema",
+      "title": "input",
+      "type": "object",
+      "required": [],
+      "properties": {
+        "RequestNo": {
+          "type": "string",
+          "title": "Request No"
+        },
+        "WorkflowType": {
+          "type": "string",
+          "title": "Workflow Type"
+        },
+        "Requester": {
+          "type": "string",
+          "title": "Requester"
+        },
+        "FolderID": {
+          "type": "string",
+          "title": "Folder ID"
+        },
+        "PreviewFolderID": {
+        "type": "string",
+        "title": "Preview Folder ID"
+      },
+        "SubmitDateTime": {
+          "type": "string",
+          "title": "Submit Date Time"
+        },
+        "TransactionDesc": {
+          "type": "string",
+          "title": "Transaction Desc"
+        },
+        "WorkflowDesc": {
+          "type": "string",
+          "title": "Workflow Desc"
+        },
+        "RequestStatus": {
+          "type": "string",
+          "title": "Request Status"
+        },
+        "ReviewerEmpID": {
+          "type": "string",
+          "title": "Reviewer Emp ID"
+        },
+        "Approver": {
+          "type": "string",
+          "title": "Approver"
+        },
+        "ApproverComment": {
+          "type": "string",
+          "title": "Approver Comment"
+        },
+        "TransactionData": {
+          "type": "object",
+          "title": "Transaction Data",
+          "properties": {
+            "Reason": {
+              "type": "string",
+              "title": "Reason"
+            },
+            "TerminateAccrualObjectNo": {
+              "type": "string",
+              "title": "Terminate Accrual Object No"
+            },
+            "DeactivateDate": {
+              "type": "string",
+              "title": "Deactivate Date"
+            },
+            "Accruals": {
+              "type": "array",
+              "title": "Accruals",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "ObjectNo": {
+                    "type": "string",
+                    "title": "Accrual Object No"
+                  },
+                  "Account": {
+                    "type": "string",
+                    "title": "Account"
+                  },
+                  "Description": {
+                    "type": "string",
+                    "title": "Description"
+                  },
+                  "AccrualAccount": {
+                    "type": "string",
+                    "title": "Accr. Ac"
+                  },
+                  "Description2": {
+                    "type": "string",
+                    "title": "Description"
+                  },
+                  "StartDate": {
+                    "type": "string",
+                    "title": "Start Date"
+                  },
+                  "EndDate": {
+                    "type": "string",
+                    "title": "End Date"
+                  },
+                  "Amount": {
+                    "type": "string",
+                    "title": "Amount"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "IsAllApproved": {
+          "type": "boolean",
+          "title": "Is All Approved"
+        },
+        "IsReject": {
+          "type": "boolean",
+          "title": "Is Reject"
+        },
+        "ApproveValueStep": {
+          "type": "string",
+          "title": "Approve Value Step"
+        },
+        "StepApproved": {
+          "type": "number",
+          "title": "Step Approved"
+        },
+        "BaseURL": {
+          "type": "string",
+          "title": "Base URL"
+        },
+        "SignatureToken": {
+          "type": "string",
+          "title": "Signature Token"
+        }
+      }
+    },
+    "outputs": {
+      "$schema": "http://json-schema.org/draft-07/schema",
+      "title": "output",
+      "type": "object",
+      "required": [
+        "ApproverComment",
+        "SignatureUsername",
+        "SignaturePassword",
+        "SignatureToken"
+      ],
+      "properties": {
+        "ApproverComment": {
+          "type": "string",
+          "title": "Approver Comment"
+        },
+        "SignatureUsername": {
+          "type": "string",
+          "title": "Signature Username"
+        },
+        "SignaturePassword": {
+          "type": "string",
+          "title": "Signature Password"
+        },
+        "SignatureToken": {
+          "type": "string",
+          "title": "Signature Token"
+        }
+      }
+    },
+    "category": "approval"
+  }
+}
