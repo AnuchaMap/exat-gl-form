@@ -11,14 +11,14 @@
     <App id="app">
         <Page id="asset-approval-page" showHeader="false" showFooter="true" class="whitePageBackground">
             <content>
-                <FlexBox width="100%" justifyContent="Center" class="sapUiNoContentPadding">
-                    <VBox width="100%" class="sapUiNoContentPadding">
+                <FlexBox width="100%" justifyContent="Center" class="sapUiSmallMarginTop">
+                    <VBox width="100%" class="sapUiResponsiveMargin">
                         
                         <mvc:XMLView id="nestedsCommon" viewName="glmgtnsp.workflowuimodule.view.ZGLECommonForm" visible="{= ${context>/WorkflowType} === 's101' || ${context>/WorkflowType} === 's102' || ${context>/WorkflowType} === 's201' || ${context>/WorkflowType} === 's202' || ${context>/WorkflowType} === 's301' }" />
                         <mvc:XMLView id="nesteds302" viewName="glmgtnsp.workflowuimodule.view.ZGLE107Form" visible="{= ${context>/WorkflowType} === 's302' }" />
-                        
+                        <VBox height="1rem" />
                         <VBox width="100%" class="sapUiResponsiveMargin">
-                            <l:Grid defaultSpan="XL6 L6 M6 S12" vSpacing="0" class="sapUiNoContentPadding equalPanelHeight">
+                            <l:Grid defaultSpan="XL6 L6 M6 S12" vSpacing="0" class="sapUiNoContentPadding equalPanelHeight collapsibleHeaderPanel">
                                 
                                 <Panel visible="{= !${context>/IsAllApproved} &amp;&amp; !${context>/IsReject} }" headerText="Digital Signature" expandable="false" expanded="true" class="contentSectionPanel signaturePanel">
                                     <headerToolbar>
@@ -61,7 +61,7 @@
                                     </headerToolbar>
                                     <content>
                                         <VBox class="sapUiMediumPadding">
-                                            <Label text="Comment" required="true" class="customLabel" />
+                                            <Label text="Comment" class="customLabel" />
                                             <TextArea width="100%" rows="7" placeholder="ใส่ความคิดเห็นหรือหมายเหตุเพิ่มเติมที่นี่..." id="approverComment" value="{context>/ApproverComment}" valueLiveUpdate="true" liveChange=".onCommentLiveChange" />
                                         </VBox>
                                     </content>

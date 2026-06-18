@@ -3,11 +3,11 @@
     xmlns:core="sap.ui.core"
     xmlns:l="sap.ui.layout">
     
-    <VBox width="100%" class="sapUiNoContentPadding">
+    <VBox width="100%" class="sapUiResponsiveMargin">
         
-        <l:Grid defaultSpan="XL6 L6 M6 S12" vSpacing="0" class="sapUiResponsiveMargin">
+        <l:Grid defaultSpan="XL6 L6 M6 S12" vSpacing="0" class="sapUiNoContentPadding equalPanelHeight collapsibleHeaderPanel">
             
-            <Panel headerText="Header Data" expandable="false" expanded="true" class="contentSectionPanel collapsibleHeaderPanel">
+            <Panel headerText="Header Data" expandable="false" expanded="true" class="contentSectionPanel signaturePanel">
                 <headerToolbar>
                     <Toolbar height="2rem">
                         <core:Icon src="sap-icon://accelerated" class="sapUiSmallMarginEnd" />
@@ -30,7 +30,7 @@
                 </content>
             </Panel>
 
-            <Panel headerText="ผู้จัดทำ / ผู้อนุมัติ" expandable="false" expanded="true" class="contentSectionPanel collapsibleHeaderPanel">
+            <Panel headerText="ผู้จัดทำ / ผู้อนุมัติ" expandable="false" expanded="true" class="contentSectionPanel signaturePanel">
                 <headerToolbar>
                     <Toolbar height="2rem">
                         <core:Icon src="sap-icon://account" class="sapUiSmallMarginEnd" />
@@ -54,23 +54,12 @@
         </l:Grid>
 
         <VBox class="sapUiResponsiveMargin">
-            <Panel expandable="false" expanded="true" class="contentSectionPanel collapsibleHeaderPanel">
-                <headerToolbar>
-                    <Toolbar height="2rem">
-                        <core:Icon src="sap-icon://document" class="sapUiSmallMarginEnd" />
-                        <Title text="Preview Document" class="panelTitle" />
-                    </Toolbar>
-                </headerToolbar>
-                <content>
-                    <VBox class="sapUiMediumPadding">
-                        <core:HTML id="htmlPreview"
-                            content="{= ${view>/PreviewFile} ? '&lt;iframe src=\'' + ${view>/PreviewFile/fileUrl} + '\' style=\'width:100%;height:500px;border:0;display:block;overflow-y:scroll\'&gt;&lt;/iframe&gt;' : '&lt;p style=\'color:grey;padding:1rem\'&gt;ไม่มีเอกสาร preview&lt;/p&gt;' }" />
-                    </VBox>
-                </content>
+            <Panel expandable="false" expanded="true" class="contentSectionPanel signaturePanel">
+                <core:HTML content="{view>/iframeContent}" sanitizeContent="false" width="100%" />
             </Panel>
         </VBox>
 
-        <VBox class="sapUiResponsiveMargin">
+        <VBox class="sapUiResponsiveMargin sapUiMediumMarginBottom">
             <Panel expandable="false" expanded="true" class="contentSectionPanel signaturePanel">
                 <headerToolbar>
                     <Toolbar height="2rem">

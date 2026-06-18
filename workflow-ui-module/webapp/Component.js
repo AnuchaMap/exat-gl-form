@@ -14,61 +14,37 @@ sap.ui.define(
       },
 
       init: function () {
-        // call the base component's init function
         UIComponent.prototype.init.apply(this, arguments);
-
-        // enable routing
         this.getRouter().initialize();
-
-        // set the device model
         this.setModel(models.createDeviceModel(), "device");
-
         this.setTaskModels();
 
-        // ดึงโมเดล context มาเพื่อใช้เช็คเงื่อนไข
         var oContextModel = this.getModel("context");
 
-        // รอให้โหลดข้อมูลจากหลังบ้านเสร็จก่อนสร้างปุ่ม
         oContextModel.attachRequestCompleted(
           function () {
-            var requestStatus = oContextModel.getProperty("/RequestStatus");
-            if (requestStatus == "PENDING APPROVAL") {
-              const rejectOutcomeId = "reject";
+            // ✅ เปลี่ยนจาก RequestStatus มาใช้ IsAllApproved / IsReject
+            var bIsAllApproved = oContextModel.getProperty("/IsAllApproved");
+            var bIsReject      = oContextModel.getProperty("/IsReject");
+            var bIsPending     = !bIsAllApproved && !bIsReject;
+
+            if (bIsPending) {
+              // ยังรออนุมัติ → แสดงปุ่ม Approve + Reject
               this.getInboxAPI().addAction(
-                {
-                  action: rejectOutcomeId,
-                  label: "Reject",
-                  type: "reject",
-                },
-                function () {
-                  this.completeTask(false, rejectOutcomeId);
-                },
+                { action: "reject", label: "Reject", type: "reject" },
+                function () { this.completeTask(false, "reject"); },
                 this,
               );
-
-              const approveOutcomeId = "approve";
               this.getInboxAPI().addAction(
-                {
-                  action: approveOutcomeId,
-                  label: "Approve",
-                  type: "accept",
-                },
-                function () {
-                  this.completeTask(true, approveOutcomeId);
-                },
+                { action: "approve", label: "Approve", type: "accept" },
+                function () { this.completeTask(true, "approve"); },
                 this,
               );
             } else {
-              const approveOutcomeId = "approve";
+              // ผ่านกระบวนการแล้ว → แสดงแค่ปุ่ม Close
               this.getInboxAPI().addAction(
-                {
-                  action: approveOutcomeId,
-                  label: "Close",
-                  type: "reject",
-                },
-                function () {
-                  this.completeTask(true, approveOutcomeId);
-                },
+                { action: "approve", label: "Close", type: "reject" },
+                function () { this.completeTask(true, "approve"); },
                 this,
               );
             }
@@ -95,14 +71,9 @@ sap.ui.define(
       },
 
       _getWorkflowRuntimeBaseURL: function () {
-        var ui5CloudService = this.getManifestEntry(
-          "/sap.cloud/service",
-        ).replaceAll(".", "");
-        var ui5ApplicationName = this.getManifestEntry(
-          "/sap.app/id",
-        ).replaceAll(".", "");
-        var appPath = `${ui5CloudService}.${ui5ApplicationName}`;
-        return `/${appPath}/api/public/workflow/rest/v1`;
+        var ui5CloudService = this.getManifestEntry("/sap.cloud/service").replaceAll(".", "");
+        var ui5ApplicationName = this.getManifestEntry("/sap.app/id").replaceAll(".", "");
+        return "/" + ui5CloudService + "." + ui5ApplicationName + "/api/public/workflow/rest/v1";
       },
 
       getTaskInstanceID: function () {
@@ -110,8 +81,7 @@ sap.ui.define(
       },
 
       getInboxAPI: function () {
-        var startupParameters = this.getComponentData().startupParameters;
-        return startupParameters.inboxAPI;
+        return this.getComponentData().startupParameters.inboxAPI;
       },
 
       completeTask: function (approvalStatus, outcomeId) {
@@ -122,49 +92,45 @@ sap.ui.define(
       _patchTaskInstance: function (outcomeId) {
         const context = this.getModel("context").getData();
 
-        if (context.RequestStatus != "PENDING APPROVAL") {
-          context.ApproverComment = context.ApproverComment || "";
-          context.SignatureUsername = context.SignatureUsername || "";
-          context.SignaturePassword = context.SignaturePassword || "";
-          context.SignatureToken = context.SignatureToken || "";
-          context.IsClose = true;
+        // ✅ เปลี่ยนจาก RequestStatus มาใช้ IsAllApproved / IsReject
+        var bIsAllApproved = context.IsAllApproved;
+        var bIsReject      = context.IsReject;
+        var bIsPending     = !bIsAllApproved && !bIsReject;
+
+        if (!bIsPending) {
+          context.ApproverComment    = context.ApproverComment    || "";
+          context.SignatureUsername  = context.SignatureUsername  || "";
+          context.SignaturePassword  = context.SignaturePassword  || "";
+          context.SignatureToken     = context.SignatureToken     || "";
+          context.IsClose            = true;
         } else {
           context.IsClose = false;
         }
 
-        var data = {
-          status: "COMPLETED",
-          context: { ...context, comment: context.comment || "" },
-          decision: outcomeId,
-        };
-
-        jQuery
-          .ajax({
-            url: `${this._getTaskInstancesBaseURL()}`,
-            method: "PATCH",
-            contentType: "application/json",
-            async: true,
-            data: JSON.stringify(data),
-            headers: {
-              "X-CSRF-Token": this._fetchToken(),
-            },
-          })
-          .done(() => {
-            this._refreshTaskList();
-          });
+        jQuery.ajax({
+          url: this._getTaskInstancesBaseURL(),
+          method: "PATCH",
+          contentType: "application/json",
+          async: true,
+          data: JSON.stringify({
+            status: "COMPLETED",
+            context: { ...context, comment: context.comment || "" },
+            decision: outcomeId,
+          }),
+          headers: { "X-CSRF-Token": this._fetchToken() },
+        }).done(() => {
+          this._refreshTaskList();
+        });
       },
 
       _fetchToken: function () {
         var fetchedToken;
-
         jQuery.ajax({
           url: this._getWorkflowRuntimeBaseURL() + "/xsrf-token",
           method: "GET",
           async: false,
-          headers: {
-            "X-CSRF-Token": "Fetch",
-          },
-          success(result, xhr, data) {
+          headers: { "X-CSRF-Token": "Fetch" },
+          success: function (result, xhr, data) {
             fetchedToken = data.getResponseHeader("X-CSRF-Token");
           },
         });

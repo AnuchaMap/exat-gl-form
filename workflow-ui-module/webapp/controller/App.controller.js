@@ -8,52 +8,50 @@ sap.ui.define(
     "use strict";
 
     return Controller.extend("glmgtnsp.workflowuimodule.controller.App", {
+
+      // ─── Init ────────────────────────────────────────────────────────────
       onInit: function () {
         var oComponent = this.getOwnerComponent();
-        oComponent.attachEvent(
-          "modelContextChange",
-          this._onContextModelChange,
-          this,
-        );
+        if (oComponent) {
+          oComponent.attachEvent(
+            "modelContextChange",
+            this._onContextModelChange,
+            this,
+          );
+        }
 
-        var oViewModel = new JSONModel({ Attachments: [], PreviewFile: null });
+        var oViewModel = new JSONModel({
+          Attachments: [],
+          iframeContent: "<div>กำลังโหลดเอกสาร...</div>",
+        });
         this.getView().setModel(oViewModel, "view");
 
         this.onLoginChange();
+        this.onPreviewPdf();
       },
 
+      // ─── Status Style ─────────────────────────────────────────────────────
       _applyStatusStyle: function () {
         var oContextModel =
           this.getView().getModel("context") ||
           this.getOwnerComponent().getModel("context");
 
-        if (!oContextModel) {
-          return;
-        }
+        if (!oContextModel) return;
 
         var wfType = oContextModel.getProperty("/WorkflowType");
-        
-        // 🛠️ เช็กสถานะจาก Boolean แทนการใช้ RequestStatus
         var bIsAllApproved = oContextModel.getProperty("/IsAllApproved");
         var bIsReject = oContextModel.getProperty("/IsReject");
 
-        // แมป ID ให้ตรงกับหน้า XML View หลัก
-        var sNestedViewId = (wfType === "s302") ? "nesteds302" : "nestedsCommon";
-        var oNestedView = this.byId(sNestedViewId);
-        if (!oNestedView) {
-          return;
-        }
+        var oNestedView = this.byId("nested" + wfType);
+        if (!oNestedView) return;
 
         var oText = oNestedView.byId("txtStatus");
-        if (!oText) {
-          return;
-        }
+        if (!oText) return;
 
         oText.removeStyleClass("pending");
         oText.removeStyleClass("approved");
         oText.removeStyleClass("rejected");
 
-        // ปรับเปลี่ยนการพ่น Style CSS ตาม Boolean
         if (bIsReject) {
           oText.addStyleClass("requestStatus");
           oText.addStyleClass("rejected");
@@ -61,12 +59,12 @@ sap.ui.define(
           oText.addStyleClass("requestStatus");
           oText.addStyleClass("approved");
         } else {
-          // หากยังไม่ถูกกดทั้งสองสถานะ แปลว่าเป็นช่วง Pending Approval
           oText.addStyleClass("requestStatus");
           oText.addStyleClass("pending");
         }
       },
 
+      // ─── Context Model Change ─────────────────────────────────────────────
       _onContextModelChange: function () {
         var oContextModel =
           this.getView().getModel("context") ||
@@ -76,7 +74,7 @@ sap.ui.define(
           setTimeout(
             function () {
               this._loadDmsAttachmentsOnly();
-              this._loadDmsPreviewFile();
+              //this.onPreviewPdf();
               this._updateInboxActions();
               this._applyStatusStyle();
             }.bind(this),
@@ -85,6 +83,7 @@ sap.ui.define(
         }
       },
 
+      // ─── DMS Attachments ─────────────────────────────────────────────────
       _loadDmsAttachmentsOnly: function () {
         var oView = this.getView();
         var oViewModel = oView.getModel("view");
@@ -95,18 +94,14 @@ sap.ui.define(
         if (!oViewModel || !oContextModel) return;
 
         var sFolderId = oContextModel.getProperty("/FolderID");
-
         if (!sFolderId || sFolderId === "undefined") {
           oViewModel.setProperty("/Attachments", []);
           return;
         }
 
         oView.setBusy(true);
-
-        var oConfig =
-          this.getOwnerComponent().getManifestEntry("/sap.ui5/config");
-        var sBaseApiUrl = oConfig.dmsApiUrl;
-        var sApiUrl = sBaseApiUrl.replace("{FOLDER_ID}", sFolderId);
+        var oConfig = this.getOwnerComponent().getManifestEntry("/sap.ui5/config");
+        var sApiUrl = oConfig.dmsApiUrl.replace("{FOLDER_ID}", sFolderId);
 
         jQuery.ajax({
           url: sApiUrl,
@@ -115,7 +110,6 @@ sap.ui.define(
           success: function (oData) {
             oView.setBusy(false);
             var aApiAttachments = [];
-
             if (oData && oData.success && oData.items) {
               aApiAttachments = oData.items.map(function (oItem) {
                 return {
@@ -128,7 +122,6 @@ sap.ui.define(
             } else {
               MessageToast.show("ไม่พบไฟล์ใน Folder หรือโครงสร้าง API ไม่ตรง");
             }
-
             oViewModel.setProperty("/Attachments", aApiAttachments);
           }.bind(this),
           error: function (oError) {
@@ -140,211 +133,212 @@ sap.ui.define(
         });
       },
 
-      _loadDmsPreviewFile: function () {
+      // ─── PDF Preview ──────────────────────────────────────────────────────
+      onPreviewPdf: function () {
         var oView = this.getView();
-        var oViewModel = oView.getModel("view");
         var oContextModel =
           oView.getModel("context") ||
           this.getOwnerComponent().getModel("context");
 
-        if (!oViewModel || !oContextModel) return;
+        // ถ้ายังไม่มี context model (โหลดครั้งแรกก่อน context พร้อม) ให้ข้ามไป
+        if (!oContextModel) return;
 
         var sPreviewFolderId = oContextModel.getProperty("/PreviewFolderID");
-
+        console.log("=== PreviewFolderID ===", sPreviewFolderId);
         if (!sPreviewFolderId || sPreviewFolderId === "undefined") {
-          oViewModel.setProperty("/PreviewFile", null);
+          this.getView().getModel("view").setProperty(
+            "/iframeContent",
+            "<div>ไม่พบเอกสาร Preview</div>"
+          );
           return;
         }
 
         var oConfig = this.getOwnerComponent().getManifestEntry("/sap.ui5/config");
-        var sBaseApiUrl = oConfig.dmsApiUrl;
-        var sApiUrl = sBaseApiUrl.replace("{FOLDER_ID}", sPreviewFolderId);
+        var sApiUrl = oConfig.dmsApiUrl.replace("{FOLDER_ID}", sPreviewFolderId);
+
+        oView.setBusy(true);
 
         jQuery.ajax({
           url: sApiUrl,
           method: "GET",
           dataType: "json",
           success: function (oData) {
+            oView.setBusy(false);
+
             if (oData && oData.success && oData.items && oData.items.length > 0) {
-              var oPreview = {
-                fileName: oData.items[0].name,
-                fileUrl: oData.items[0].previewUrl,
-              };
-              oViewModel.setProperty("/PreviewFile", oPreview);
+              var sFileId = oData.items[0].id; // ✅ ใช้ id ตรงๆ
+              var sBase64Url = "https://sbpa_helper.cfapps.ap10.hana.ondemand.com/api/dms/file/" + sFileId + "/base64";
+
+              fetch(sBase64Url)
+                .then(function (res) { return res.json(); })
+                .then(function (oFileData) {
+                  if (oFileData.success && oFileData.base64Data) {
+                    this.loadPdf(oFileData.base64Data);
+                  } else {
+                    MessageToast.show("โหลดไฟล์ Preview ไม่สำเร็จ");
+                  }
+                }.bind(this))
+                .catch(function (err) {
+                  jQuery.sap.log.error("Error fetching preview base64:", err);
+                  MessageToast.show("เกิดข้อผิดพลาดในการโหลด Preview");
+                });
             } else {
-              oViewModel.setProperty("/PreviewFile", null);
+              this.getView().getModel("view").setProperty(
+                "/iframeContent",
+                "<div>ไม่พบเอกสาร Preview ใน Folder</div>"
+              );
             }
           }.bind(this),
           error: function (oError) {
+            oView.setBusy(false);
             jQuery.sap.log.error(oError);
-            oViewModel.setProperty("/PreviewFile", null);
+            MessageToast.show("เกิดข้อผิดพลาดในการโหลด Preview");
           }.bind(this),
         });
       },
 
-      onLoginChange: function () {
-        var sUsername = this.getView().byId("usernameInput")
-          ? this.getView().byId("usernameInput").getValue()
-          : "";
-        var sPassword = this.getView().byId("passwordInput")
-          ? this.getView().byId("passwordInput").getValue()
-          : "";
-        var bIsValid =
-          sUsername.trim().length > 0 && sPassword.trim().length > 0;
+      loadPdf: function (sBase64) {
 
-        var oLoginButton = this.getView().byId("loginButton");
+        var byteCharacters = window.atob(sBase64);
+        var byteArrays = [];
+        for (var offset = 0; offset < byteCharacters.length; offset += 512) {
+          var slice = byteCharacters.slice(offset, offset + 512);
+          var byteNumbers = new Array(slice.length);
+          for (var i = 0; i < slice.length; i++) {
+            byteNumbers[i] = slice.charCodeAt(i);
+          }
+          byteArrays.push(new Uint8Array(byteNumbers));
+        }
+
+        var blob = new Blob(byteArrays, { type: "application/pdf" });
+        var blobUrl = URL.createObjectURL(blob);
+        var sIframeHtml =
+          '<iframe src="' + blobUrl +
+          '" width="100%" height="595px" style="border: none; border-radius: 4px; display: block; max-width: 100%;"></iframe>';
+
+        this.getView().getModel("view").setProperty("/iframeContent", sIframeHtml);
+        console.log("=== model after set ===",
+          this.getView().getModel("view").getProperty("/iframeContent"));
+      },
+
+      // ─── Login ────────────────────────────────────────────────────────────
+      onLoginChange: function () {
+        var oView = this.getView();
+        var sUsername = oView.byId("usernameInput")
+          ? oView.byId("usernameInput").getValue() : "";
+        var sPassword = oView.byId("passwordInput")
+          ? oView.byId("passwordInput").getValue() : "";
+
+        var oLoginButton = oView.byId("loginButton");
         if (oLoginButton) {
-          oLoginButton.setEnabled(bIsValid);
+          oLoginButton.setEnabled(
+            sUsername.trim().length > 0 && sPassword.trim().length > 0,
+          );
         }
       },
 
       onLoginPress: function () {
-        var sUsername = this.getView().byId("usernameInput").getValue();
-        var sPassword = this.getView().byId("passwordInput").getValue();
+        var oView = this.getView();
+        var sUsername = oView.byId("usernameInput").getValue();
+        var sPassword = oView.byId("passwordInput").getValue();
 
-        if (sUsername && sPassword) {
-          var oView = this.getView();
-          var oContextModel = oView.getModel("context");
+        if (!sUsername || !sPassword) {
+          MessageToast.show("กรุณากรอก Username และ Password ให้ครบถ้วน");
+          return;
+        }
 
-          oView.setBusy(true);
+        var oContextModel = oView.getModel("context");
+        oView.setBusy(true);
 
-          var oPayload = {
-            username: sUsername,
-            password: sPassword,
-            ref_1: "",
-            ref_2: "",
-          };
+        var oConfig = this.getOwnerComponent().getManifestEntry("/sap.ui5/config");
 
-          var oConfig =
-            this.getOwnerComponent().getManifestEntry("/sap.ui5/config");
-          var sApiUrl = oConfig.tokenApiUrl;
+        jQuery.ajax({
+          url: oConfig.tokenApiUrl,
+          method: "POST",
+          contentType: "application/json",
+          data: JSON.stringify({ username: sUsername, password: sPassword, ref_1: "", ref_2: "" }),
+          success: function (oData) {
+            oView.setBusy(false);
+            var oSigner =
+              oData &&
+              oData.result &&
+              oData.result.details &&
+              oData.result.details.signer &&
+              oData.result.details.signer[0];
 
-          jQuery.ajax({
-            url: sApiUrl,
-            method: "POST",
-            contentType: "application/json",
-            data: JSON.stringify(oPayload),
-            success: function (oData) {
-              oView.setBusy(false);
-
-              if (
-                oData &&
-                oData.result &&
-                oData.result.details &&
-                oData.result.details.signer &&
-                oData.result.details.signer.length > 0
-              ) {
-                var oSigner = oData.result.details.signer[0];
-
-                if (oSigner.status === "S" || oSigner.statusCode === "200") {
-                  var sToken = oSigner.token;
-
-                  if (oContextModel) {
-                    oContextModel.setProperty("/SignatureUsername", sUsername);
-                    oContextModel.setProperty("/SignatureToken", sToken);
-                    oContextModel.refresh(true);
-                  }
-
-                  this._updateInboxActions();
-                  MessageToast.show(
-                    "เข้าสู่ระบบสำเร็จ! ได้รับ Token เรียบร้อยแล้ว",
-                  );
-                } else {
-                  MessageToast.show(
-                    "ไม่สามารถรับ Token ได้: " +
-                      (oSigner.message || "ข้อมูลไม่ถูกต้อง"),
-                  );
-                }
-              } else {
-                MessageToast.show(
-                  "รูปแบบข้อมูลที่ตอบกลับจาก API ไม่ถูกต้องตามที่คาดหวัง",
-                );
-              }
-            }.bind(this),
-            error: function (jqXHR, textStatus, errorThrown) {
-              oView.setBusy(false);
-
-              var sErrorMsg =
-                "เกิดข้อผิดพลาดในการเชื่อมต่อเครือข่าย หรือ API ขัดข้อง";
-
-              if (jqXHR && jqXHR.responseText) {
-                try {
-                  var oErrorData = JSON.parse(jqXHR.responseText);
-                  if (oErrorData.message && oErrorData.error) {
-                    sErrorMsg =
-                      oErrorData.message + " (" + oErrorData.error + ")";
-                  } else {
-                    sErrorMsg =
-                      oErrorData.error ||
-                      oErrorData.message ||
-                      jqXHR.statusText;
-                  }
-                } catch (e) {
-                  sErrorMsg = jqXHR.statusText || sErrorMsg;
-                }
-              }
-
-              jQuery.sap.log.error("API Token Error:", jqXHR);
-              MessageToast.show(
-                "Error API แต่ระบบทำการจำลอง (Mock) Token ให้ชั่วคราว",
-              );
-
+            if (oSigner && (oSigner.status === "S" || oSigner.statusCode === "200")) {
               if (oContextModel) {
-                var sMockToken =
-                  "MOCK_TOKEN_" +
-                  Math.random().toString(36).substr(2, 9).toUpperCase();
-
                 oContextModel.setProperty("/SignatureUsername", sUsername);
-                oContextModel.setProperty("/SignatureToken", sMockToken);
+                oContextModel.setProperty("/SignatureToken", oSigner.token);
                 oContextModel.refresh(true);
               }
-
               this._updateInboxActions();
-            }.bind(this),
-          });
-        } else {
-          MessageToast.show("กรุณากรอก Username และ Password ให้ครบถ้วน");
-        }
+              MessageToast.show("เข้าสู่ระบบสำเร็จ! ได้รับ Token เรียบร้อยแล้ว");
+            } else {
+              MessageToast.show(
+                "ไม่สามารถรับ Token ได้: " +
+                ((oSigner && oSigner.message) || "ข้อมูลไม่ถูกต้อง"),
+              );
+            }
+          }.bind(this),
+          error: function (jqXHR) {
+            oView.setBusy(false);
+            jQuery.sap.log.error("API Token Error:", jqXHR);
+            MessageToast.show("Error API แต่ระบบทำการจำลอง (Mock) Token ให้ชั่วคราว");
+
+            if (oContextModel) {
+              oContextModel.setProperty("/SignatureUsername", sUsername);
+              oContextModel.setProperty(
+                "/SignatureToken",
+                "MOCK_TOKEN_" + Math.random().toString(36).substr(2, 9).toUpperCase(),
+              );
+              oContextModel.refresh(true);
+            }
+            this._updateInboxActions();
+          }.bind(this),
+        });
       },
 
+      // ─── Inbox Actions ────────────────────────────────────────────────────
       _updateInboxActions: function () {
         var oComponentData = this.getOwnerComponent().getComponentData();
         if (
-          oComponentData &&
-          oComponentData.startupParameters &&
-          oComponentData.startupParameters.inboxAPI
-        ) {
-          var oInboxAPI = oComponentData.startupParameters.inboxAPI;
-          var oContextModel =
-            this.getView().getModel("context") ||
-            this.getOwnerComponent().getModel("context");
+          !oComponentData ||
+          !oComponentData.startupParameters ||
+          !oComponentData.startupParameters.inboxAPI
+        ) return;
 
-          if (!oContextModel) return;
+        var oInboxAPI = oComponentData.startupParameters.inboxAPI;
+        var oContextModel =
+          this.getView().getModel("context") ||
+          this.getOwnerComponent().getModel("context");
 
-          var sToken = oContextModel.getProperty("/SignatureToken") || "";
-          var sApproverComment = oContextModel.getProperty("/ApproverComment") || "";
-          
-          // 🛠️ ดึงเงื่อนไขของสถานะผ่าน Boolean 2 ตัว
-          var bIsAllApproved = oContextModel.getProperty("/IsAllApproved");
-          var bIsReject = oContextModel.getProperty("/IsReject");
+        var sToken = oContextModel.getProperty("/SignatureToken") || "";
+        var bIsAllApproved = oContextModel.getProperty("/IsAllApproved");
+        var bIsReject = oContextModel.getProperty("/IsReject");
 
-          // แปลงว่าถ้ายังไม่ Approved และยังไม่ Reject แสดงว่ายังค้างอยู่ (Pending)
-          var bIsPending = (!bIsAllApproved && !bIsReject);
-          var bHasSignedAndCommented = (sToken.trim().length > 0 && sApproverComment.trim().length > 0);
-
-          // ถ้าพ้นสถานะ Pending (เป็น Approved หรือ Reject ไปแล้ว) หรือกรอกข้อมูลในแอปครบถ้วน -> ปลดล็อกให้กดปุ่มได้
-          if (!bIsPending || bHasSignedAndCommented) {
-            oInboxAPI.enableAction("approve");
-            oInboxAPI.enableAction("reject");
-          } else {
-            oInboxAPI.disableAction("approve");
-            oInboxAPI.disableAction("reject");
-          }
+        if (sToken.trim().length > 0 && !bIsAllApproved && !bIsReject) {
+          oInboxAPI.enableAction("approve");
+          oInboxAPI.enableAction("reject");
+        } else {
+          oInboxAPI.disableAction("approve");
+          oInboxAPI.disableAction("reject");
         }
+
+        oContextModel.refresh(true);
       },
 
       onCommentLiveChange: function () {
         this._updateInboxActions();
+      },
+
+      // ─── Path Buttons ────────────────────────────────────────────────────
+      onCorrectPathClick: function () {
+        MessageToast.show("Correct Path Clicked");
+      },
+
+      onIncorrectPathClick: function () {
+        MessageToast.show("Incorrect Path Clicked");
       },
     });
   },
