@@ -11,13 +11,16 @@
     <App id="app">
         <Page id="asset-approval-page" showHeader="false" showFooter="true" class="whitePageBackground">
             <content>
-                <FlexBox width="100%" justifyContent="Center" class="sapUiSmallMarginTop">
-                    <VBox width="100%" class="sapUiResponsiveMargin">
+                <FlexBox width="100%" justifyContent="Center" class="sapUiNoContentPadding">
+                    <VBox width="100%" class="sapUiNoContentPadding">
+                        
                         <mvc:XMLView id="nestedsCommon" viewName="glmgtnsp.workflowuimodule.view.ZGLECommonForm" visible="{= ${context>/WorkflowType} === 's101' || ${context>/WorkflowType} === 's102' || ${context>/WorkflowType} === 's201' || ${context>/WorkflowType} === 's202' || ${context>/WorkflowType} === 's301' }" />
                         <mvc:XMLView id="nesteds302" viewName="glmgtnsp.workflowuimodule.view.ZGLE107Form" visible="{= ${context>/WorkflowType} === 's302' }" />
-                        <VBox width="auto" class="sapUiResponsiveMargin">
-                            <l:Grid defaultSpan="XL6 L6 M6 S12" vSpacing="0" hSpacing="0" class="sapUiNoContentPadding equalPanelHeight">
-                                <Panel visible="{= !${context>/IsAllApproved} &amp;&amp; ${context>/RequestStatus} === 'PENDING APPROVAL' }" headerText="Digital Signature" expandable="false" expanded="true" class="contentSectionPanel signaturePanel">
+                        
+                        <VBox width="100%" class="sapUiResponsiveMargin">
+                            <l:Grid defaultSpan="XL6 L6 M6 S12" vSpacing="0" class="sapUiNoContentPadding equalPanelHeight">
+                                
+                                <Panel visible="{= !${context>/IsAllApproved} &amp;&amp; !${context>/IsReject} }" headerText="Digital Signature" expandable="false" expanded="true" class="contentSectionPanel signaturePanel">
                                     <headerToolbar>
                                         <Toolbar height="2rem">
                                             <core:Icon src="sap-icon://edit" class="sapUiSmallMarginEnd" />
@@ -48,7 +51,8 @@
                                         </VBox>
                                     </content>
                                 </Panel>
-                                <Panel visible="{= !${context>/IsAllApproved} &amp;&amp; ${context>/RequestStatus} === 'PENDING APPROVAL' }" headerText="Approver Comment" required="false" expandable="false" expanded="true" class="contentSectionPanel generalPanel">
+
+                                <Panel visible="{= !${context>/IsAllApproved} &amp;&amp; !${context>/IsReject} }" headerText="Approver Comment" expandable="false" expanded="true" class="contentSectionPanel generalPanel">
                                     <headerToolbar>
                                         <Toolbar height="2rem">
                                             <core:Icon src="sap-icon://comment" class="sapUiSmallMarginEnd" />
@@ -63,10 +67,9 @@
                                     </content>
                                 </Panel>
 
-
                             </l:Grid>
-                            
                         </VBox>
+
                     </VBox>
                 </FlexBox>
             </content>

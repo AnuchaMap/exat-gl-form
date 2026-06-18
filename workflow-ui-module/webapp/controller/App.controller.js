@@ -32,9 +32,14 @@ sap.ui.define(
         }
 
         var wfType = oContextModel.getProperty("/WorkflowType");
-        var sStatus = oContextModel.getProperty("/RequestStatus");
+        
+        // 🛠️ เช็กสถานะจาก Boolean แทนการใช้ RequestStatus
+        var bIsAllApproved = oContextModel.getProperty("/IsAllApproved");
+        var bIsReject = oContextModel.getProperty("/IsReject");
 
-        var oNestedView = this.byId("nested" + wfType);
+        // แมป ID ให้ตรงกับหน้า XML View หลัก
+        var sNestedViewId = (wfType === "s302") ? "nesteds302" : "nestedsCommon";
+        var oNestedView = this.byId(sNestedViewId);
         if (!oNestedView) {
           return;
         }
@@ -48,19 +53,17 @@ sap.ui.define(
         oText.removeStyleClass("approved");
         oText.removeStyleClass("rejected");
 
-        switch (sStatus) {
-          case "PENDING APPROVAL":
-            oText.addStyleClass("requestStatus");
-            oText.addStyleClass("pending");
-            break;
-          case "REJECTED":
-            oText.addStyleClass("requestStatus");
-            oText.addStyleClass("rejected");
-            break;
-          default:
-            oText.addStyleClass("requestStatus");
-            oText.addStyleClass("approved");
-            break;
+        // ปรับเปลี่ยนการพ่น Style CSS ตาม Boolean
+        if (bIsReject) {
+          oText.addStyleClass("requestStatus");
+          oText.addStyleClass("rejected");
+        } else if (bIsAllApproved) {
+          oText.addStyleClass("requestStatus");
+          oText.addStyleClass("approved");
+        } else {
+          // หากยังไม่ถูกกดทั้งสองสถานะ แปลว่าเป็นช่วง Pending Approval
+          oText.addStyleClass("requestStatus");
+          oText.addStyleClass("pending");
         }
       },
 
@@ -316,12 +319,21 @@ sap.ui.define(
             this.getView().getModel("context") ||
             this.getOwnerComponent().getModel("context");
 
-          var sToken = oContextModel.getProperty("/SignatureToken") || "";
-          var sApproverComment =
-            oContextModel.getProperty("/ApproverComment") || "";
-          var sStatus = oContextModel.getProperty("/RequestStatus");
+          if (!oContextModel) return;
 
-          if ((sToken.trim().length > 0 && sApproverComment.trim().length > 0) || sStatus != "PENDING APPROVAL") {
+          var sToken = oContextModel.getProperty("/SignatureToken") || "";
+          var sApproverComment = oContextModel.getProperty("/ApproverComment") || "";
+          
+          // 🛠️ ดึงเงื่อนไขของสถานะผ่าน Boolean 2 ตัว
+          var bIsAllApproved = oContextModel.getProperty("/IsAllApproved");
+          var bIsReject = oContextModel.getProperty("/IsReject");
+
+          // แปลงว่าถ้ายังไม่ Approved และยังไม่ Reject แสดงว่ายังค้างอยู่ (Pending)
+          var bIsPending = (!bIsAllApproved && !bIsReject);
+          var bHasSignedAndCommented = (sToken.trim().length > 0 && sApproverComment.trim().length > 0);
+
+          // ถ้าพ้นสถานะ Pending (เป็น Approved หรือ Reject ไปแล้ว) หรือกรอกข้อมูลในแอปครบถ้วน -> ปลดล็อกให้กดปุ่มได้
+          if (!bIsPending || bHasSignedAndCommented) {
             oInboxAPI.enableAction("approve");
             oInboxAPI.enableAction("reject");
           } else {
