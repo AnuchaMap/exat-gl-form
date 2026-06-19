@@ -2,7 +2,7 @@
     xmlns="sap.m"
     xmlns:core="sap.ui.core"
     xmlns:l="sap.ui.layout">
-    <VBox width="auto" class="sapUiResponsiveMargin">
+    <VBox width="100%" class="sapUiResponsiveMargin">
         <l:Grid defaultSpan="XL6 L6 M6 S12" vSpacing="0" class="sapUiNoContentPadding equalPanelHeight collapsibleHeaderPanel">
             
             <Panel headerText="Header Data" expandable="false" expanded="true" class="contentSectionPanel signaturePanel">
@@ -50,6 +50,7 @@
             </Panel>
 
         </l:Grid>
+         <VBox class="sapUiResponsiveMargin">
         <Panel headerText="Accrual Data" expandable="false" expanded="true" class="contentSectionPanel signaturePanel">
             <headerToolbar>
                 <Toolbar height="2rem">
@@ -58,13 +59,13 @@
                 </Toolbar>
             </headerToolbar>
             <content>
-                <VBox class="sapUiSmallMarginTop">
+                <VBox class="sapUiMediumPadding">
                     <Text text="Terminate Accrual Object No" class="labelGrey" />
-                    <Text text="{context>/TransactionData/TerminateAccrualObjectNo}" class="valueBlue" />
+                    <Text text="{context>/TransactionData/TerminateAccrualObjectNo}" wrapping="true"  class="valueBlue" />
                     <Text text="Deactivate Date" class="labelGrey" />
                     <Text text="{context>/TransactionData/DeactivateDate}" class="valueBlue" />
                 </VBox>
-                <ScrollContainer height="320px" vertical="true" width="100%">
+                <ScrollContainer height="300px" vertical="true" width="100%">
                     <Table items="{context>/TransactionData/Accruals}" class="customTable smallFontTable" inset="false" width="100%">
                         <columns>
                             <Column hAlign="Begin"><Text text="Accrual Object No" wrapping="false" /></Column>
@@ -93,12 +94,12 @@
                     </Table>
                 </ScrollContainer>
                 
-                <VBox class="sapUiSmallMarginTop">
+                <VBox class="sapUiMediumPadding">
                     <Text text="Reason" class="labelGrey" />
                     <Text text="{context>/TransactionData/Reason}" class="valueBlue" />
                 </VBox>
             </content>
         </Panel>
-        
+        </VBox>
     </VBox>
 </mvc:View>
