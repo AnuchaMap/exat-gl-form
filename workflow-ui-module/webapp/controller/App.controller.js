@@ -73,6 +73,8 @@ sap.ui.define(
         if (oContextModel) {
           setTimeout(
             function () {
+              console.log("=== Full Context ===", JSON.stringify(oContextModel.getObject("/")));
+              console.log("=== TransactionData ===", JSON.stringify(oContextModel.getProperty("/TransactionData")));
               this._loadDmsAttachmentsOnly();
               //this.onPreviewPdf();
               this._updateInboxActions();
@@ -316,8 +318,9 @@ sap.ui.define(
         var sToken = oContextModel.getProperty("/SignatureToken") || "";
         var bIsAllApproved = oContextModel.getProperty("/IsAllApproved");
         var bIsReject = oContextModel.getProperty("/IsReject");
+        var bIsClose = oContextModel.getProperty("/IsClose");
 
-        if (sToken.trim().length > 0 && !bIsAllApproved && !bIsReject) {
+        if ((sToken.trim().length > 0  && !bIsAllApproved && !bIsReject) || bIsClose) {
           oInboxAPI.enableAction("approve");
           oInboxAPI.enableAction("reject");
         } else {

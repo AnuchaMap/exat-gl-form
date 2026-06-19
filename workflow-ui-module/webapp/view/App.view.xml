@@ -13,7 +13,19 @@
             <content>
                 <FlexBox width="100%" justifyContent="Center" class="sapUiSmallMarginTop">
                     <VBox width="100%" class="sapUiResponsiveMargin">
-                        
+
+                        <VBox height="1rem" />
+                        <Panel expandable="false" expanded="true" class="contentSectionPanel signaturePanel">
+                            <content>
+                                <VBox class="sapUiMediumPadding">
+                                    <Title text="{context>/WorkflowDesc}"
+                                           level="H5"
+                                           titleStyle="H5"
+                                           wrapping="true" />
+                                </VBox>
+                            </content>
+                        </Panel>
+
                         <mvc:XMLView id="nestedsCommon" viewName="glmgtnsp.workflowuimodule.view.ZGLECommonForm" visible="{= ${context>/WorkflowType} === 's101' || ${context>/WorkflowType} === 's102' || ${context>/WorkflowType} === 's201' || ${context>/WorkflowType} === 's202' || ${context>/WorkflowType} === 's301' }" />
                         <mvc:XMLView id="nesteds302" viewName="glmgtnsp.workflowuimodule.view.ZGLE107Form" visible="{= ${context>/WorkflowType} === 's302' }" />
                         <VBox height="1rem" />
@@ -67,9 +79,27 @@
                                     </content>
                                 </Panel>
 
+                                <Panel visible="{= ${context>/IsAllApproved} || ${context>/IsReject} }" expandable="false" expanded="true" class="contentSectionPanel signaturePanel">
+                                    <layoutData>
+                                        <l:GridData span="XL12 L12 M12 S12" />
+                                    </layoutData>
+                                    <headerToolbar>
+                                        <Toolbar height="2rem">
+                                            <core:Icon src="sap-icon://comment" class="sapUiSmallMarginEnd" />
+                                            <Title text="Comment" class="panelTitle" />
+                                        </Toolbar>
+                                    </headerToolbar>
+                                    <content>
+                                        <VBox class="sapUiMediumPadding">
+                                            <Text text="{= ${context>/ApproverComment} ? ${context>/ApproverComment} : '-' }" wrapping="true" />
+                                        </VBox>
+                                    </content>
+                                </Panel>
+                        
                             </l:Grid>
+                            
                         </VBox>
-
+                        
                     </VBox>
                 </FlexBox>
             </content>

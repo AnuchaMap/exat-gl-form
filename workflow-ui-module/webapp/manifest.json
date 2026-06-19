@@ -208,6 +208,10 @@
               "type": "string",
               "title": "Deactivate Date"
             },
+             "AccrualObjectNo": {
+              "type": "string",
+              "title": "Accrual Object No"
+            },
             "Accruals": {
               "type": "array",
               "title": "Accruals",
@@ -259,21 +263,9 @@
           "type": "boolean",
           "title": "Is Reject"
         },
-        "ApproveValueStep": {
-          "type": "string",
-          "title": "Approve Value Step"
-        },
-        "StepApproved": {
-          "type": "number",
-          "title": "Step Approved"
-        },
-        "BaseURL": {
-          "type": "string",
-          "title": "Base URL"
-        },
-        "SignatureToken": {
-          "type": "string",
-          "title": "Signature Token"
+        "IsClose": {
+          "type": "boolean",
+          "title": "Is Close"
         }
       }
     },
