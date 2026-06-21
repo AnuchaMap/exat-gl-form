@@ -51,55 +51,57 @@
 
         </l:Grid>
          <VBox class="sapUiResponsiveMargin">
-        <Panel headerText="Accrual Data" expandable="false" expanded="true" class="contentSectionPanel signaturePanel">
-            <headerToolbar>
-                <Toolbar height="2rem">
-                    <core:Icon src="sap-icon://document" class="sapUiSmallMarginEnd" />
-                    <Title text="Accrual Data" class="panelTitle" />
-                </Toolbar>
-            </headerToolbar>
-            <content>
-                <VBox class="sapUiMediumPadding">
-                    <Text text="Terminate Accrual Object No" class="labelGrey" />
-                    <Text text="{context>/TransactionData/TerminateAccrualObjectNo}" wrapping="true"  class="valueBlue" />
-                    <Text text="Deactivate Date" class="labelGrey" />
-                    <Text text="{context>/TransactionData/DeactivateDate}" class="valueBlue" />
-                </VBox>
-                <ScrollContainer height="300px" vertical="true" width="100%">
-                    <Table items="{context>/TransactionData/Accruals}" class="customTable smallFontTable" inset="false" width="100%">
-                        <columns>
-                            <Column hAlign="Begin"><Text text="Accrual Object No" wrapping="false" /></Column>
-                            <Column hAlign="Begin"><Text text="Account" wrapping="false" /></Column>
-                            <Column hAlign="Begin"><Text text="Description" wrapping="false" /></Column>
-                            <Column hAlign="Begin"><Text text="Accr. Ac" wrapping="false" /></Column>
-                            <Column hAlign="Begin"><Text text="Description" wrapping="false" /></Column>
-                            <Column hAlign="Begin"><Text text="Start Date" wrapping="false" /></Column>
-                            <Column hAlign="Begin"><Text text="End Date" wrapping="false" /></Column>
-                            <Column hAlign="End"><Text text="Amount" wrapping="false" /></Column>
-                        </columns>
-                        <items>
-                            <ColumnListItem type="Active" vAlign="Middle">
-                                <cells>
-                                    <Text text="{context>ObjectNo}" class="valueDark" wrapping="false" />
-                                    <Text text="{context>Account}" class="valueDark" wrapping="false" />
-                                    <Text text="{context>Description}" class="valueDark" wrapping="false" />
-                                    <Text text="{context>AccrualAccount}" class="valueDark" wrapping="false" />
-                                    <Text text="{context>Description2}" class="valueDark" wrapping="false" />
-                                    <Text text="{context>StartDate}" class="valueDark" wrapping="false" />
-                                    <Text text="{context>EndDate}" class="valueDark" wrapping="false" />
-                                    <Text text="{context>Amount}" class="valueDark" wrapping="false" />
-                                </cells>
-                            </ColumnListItem>
-                        </items>
-                    </Table>
-                </ScrollContainer>
-                
-                <VBox class="sapUiMediumPadding">
-                    <Text text="Reason" class="labelGrey" />
-                    <Text text="{context>/TransactionData/Reason}" class="valueBlue" />
-                </VBox>
-            </content>
-        </Panel>
+            <Panel headerText="Accrual Data" expandable="false" expanded="true" class="contentSectionPanel signaturePanel">
+                <headerToolbar>
+                    <Toolbar height="2rem">
+                        <core:Icon src="sap-icon://document" class="sapUiSmallMarginEnd" />
+                        <Title text="Accrual Data" class="panelTitle" />
+                    </Toolbar>
+                </headerToolbar>
+                <content>
+                    <VBox class="sapUiMediumPadding">
+                        <Text text="Terminate Accrual Object No" class="labelGrey" />
+                        <Text text="{context>/TransactionData/Accrual/TermiateAccrualObjectNo}" wrapping="true" class="valueBlue sapUiSmallMarginBottom" />
+
+                        <Text text="Deactivate Date" class="labelGrey" />
+                        <Text text="{context>/TransactionData/Accrual/DeactivateDate}" class="valueBlue sapUiSmallMarginBottom" />
+                    </VBox>
+
+                    <ScrollContainer height="300px" vertical="true" width="100%">
+                        <Table items="{context>/TransactionData/Accrual/AccrualObject}" class="customTable smallFontTable" inset="false" width="100%">
+                            <columns>
+                                <Column hAlign="Begin"><Text text="Accrual Object No" wrapping="false" /></Column>
+                                <Column hAlign="Begin"><Text text="Account" wrapping="false" /></Column>
+                                <Column hAlign="Begin"><Text text="Description" wrapping="false" /></Column>
+                                <Column hAlign="Begin"><Text text="Accr. Ac" wrapping="false" /></Column>
+                                <Column hAlign="Begin"><Text text="Description" wrapping="false" /></Column>
+                                <Column hAlign="Begin"><Text text="Start Date" wrapping="false" /></Column>
+                                <Column hAlign="Begin"><Text text="End Date" wrapping="false" /></Column>
+                                <Column hAlign="End"><Text text="Amount" wrapping="false" /></Column>
+                            </columns>
+                            <items>
+                                <ColumnListItem type="Active" vAlign="Middle">
+                                    <cells>
+                                        <Text text="{context>AccrualObjectNo}" class="valueDark" wrapping="false" />
+                                        <Text text="{context>Account}" class="valueDark" wrapping="false" />
+                                        <Text text="{context>Description}" class="valueDark" wrapping="false" />
+                                        <Text text="{context>AccrAcc}" class="valueDark" wrapping="false" />
+                                        <Text text="{context>AccrAccDescription}" class="valueDark" wrapping="false" />
+                                        <Text text="{context>StartDt}" class="valueDark" wrapping="false" />
+                                        <Text text="{context>EndDt}" class="valueDark" wrapping="false" />
+                                        <Text text="{context>Amount}" class="valueDark" wrapping="false" />
+                                    </cells>
+                                </ColumnListItem>
+                            </items>
+                        </Table>
+                    </ScrollContainer>
+
+                    <VBox class="sapUiMediumPadding">
+                        <Text text="Reason" class="labelGrey" />
+                        <Text text="{context>/TransactionData/Accrual/Reason}" class="valueBlue" />
+                    </VBox>
+                </content>
+            </Panel>
         </VBox>
     </VBox>
 </mvc:View>

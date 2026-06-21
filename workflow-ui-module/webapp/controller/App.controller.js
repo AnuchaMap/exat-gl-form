@@ -73,8 +73,8 @@ sap.ui.define(
         if (oContextModel) {
           setTimeout(
             function () {
-              console.log("=== Full Context ===", JSON.stringify(oContextModel.getObject("/")));
-              console.log("=== TransactionData ===", JSON.stringify(oContextModel.getProperty("/TransactionData")));
+              // console.log("=== Full Context ===", JSON.stringify(oContextModel.getObject("/")));
+              // console.log("=== TransactionData ===", JSON.stringify(oContextModel.getProperty("/TransactionData")));
               this._loadDmsAttachmentsOnly();
               //this.onPreviewPdf();
               this._updateInboxActions();
@@ -146,7 +146,7 @@ sap.ui.define(
         if (!oContextModel) return;
 
         var sPreviewFolderId = oContextModel.getProperty("/PreviewFolderID");
-        console.log("=== PreviewFolderID ===", sPreviewFolderId);
+        
         if (!sPreviewFolderId || sPreviewFolderId === "undefined") {
           this.getView().getModel("view").setProperty(
             "/iframeContent",
@@ -219,8 +219,7 @@ sap.ui.define(
           '" width="100%" height="595px" style="border: none; border-radius: 4px; display: block; max-width: 100%;"></iframe>';
 
         this.getView().getModel("view").setProperty("/iframeContent", sIframeHtml);
-        console.log("=== model after set ===",
-          this.getView().getModel("view").getProperty("/iframeContent"));
+
       },
 
       // ─── Login ────────────────────────────────────────────────────────────

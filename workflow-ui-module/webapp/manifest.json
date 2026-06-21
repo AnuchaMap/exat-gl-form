@@ -196,59 +196,65 @@
           "type": "object",
           "title": "Transaction Data",
           "properties": {
-            "Reason": {
-              "type": "string",
-              "title": "Reason"
-            },
-            "TerminateAccrualObjectNo": {
-              "type": "string",
-              "title": "Terminate Accrual Object No"
-            },
-            "DeactivateDate": {
-              "type": "string",
-              "title": "Deactivate Date"
-            },
-             "AccrualObjectNo": {
-              "type": "string",
-              "title": "Accrual Object No"
-            },
-            "Accruals": {
-              "type": "array",
-              "title": "Accruals",
-              "items": {
-                "type": "object",
-                "properties": {
-                  "ObjectNo": {
-                    "type": "string",
-                    "title": "Accrual Object No"
-                  },
-                  "Account": {
-                    "type": "string",
-                    "title": "Account"
-                  },
-                  "Description": {
-                    "type": "string",
-                    "title": "Description"
-                  },
-                  "AccrualAccount": {
-                    "type": "string",
-                    "title": "Accr. Ac"
-                  },
-                  "Description2": {
-                    "type": "string",
-                    "title": "Description"
-                  },
-                  "StartDate": {
-                    "type": "string",
-                    "title": "Start Date"
-                  },
-                  "EndDate": {
-                    "type": "string",
-                    "title": "End Date"
-                  },
-                  "Amount": {
-                    "type": "string",
-                    "title": "Amount"
+            "Accrual": {
+              "type": "object",
+              "title": "Accrual",
+              "properties": {
+                "TermiateAccrualObjectNo": {
+                  "type": "string",
+                  "title": "Terminate Accrual Object No"
+                },
+                "DeactivateDate": {
+                  "type": "string",
+                  "title": "Deactivate Date"
+                },
+                "Reason": {
+                  "type": "string",
+                  "title": "Reason"
+                },
+                "AccrualObjectNo": {
+                  "type": "string",
+                  "title": "Accrual Object No"
+                },
+                "AccrualObject": {
+                  "type": "array",
+                  "title": "Accrual Object",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "AccrualObjectNo": {
+                        "type": "string",
+                        "title": "Accrual Object No"
+                      },
+                      "Account": {
+                        "type": "string",
+                        "title": "Account"
+                      },
+                      "Description": {
+                        "type": "string",
+                        "title": "Description"
+                      },
+                      "AccrAcc": {
+                        "type": "string",
+                        "title": "Accr. Acc"
+                      },
+                      "AccrAccDescription": {
+                        "type": "string",
+                        "title": "Accr. Acc Description"
+                      },
+                      "StartDt": {
+                        "type": "string",
+                        "title": "Start Date"
+                      },
+                      "EndDt": {
+                        "type": "string",
+                        "title": "End Date"
+                      },
+                      "Amount": {
+                        "type": "string",
+                        "title": "Amount"
+                      }
+                    }
                   }
                 }
               }
