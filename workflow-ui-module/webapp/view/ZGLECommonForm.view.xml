@@ -63,7 +63,7 @@
                 </headerToolbar>
                 <content>
                     <VBox class="sapUiMediumPadding">
-                        <Text text="{context>/AccrualObjectNo}" wrapping="true" />
+                        <Text text="{context>/TransactionData/Accrual/AccrualObjectNo}" wrapping="true" />
                     </VBox>
                 </content>
             </Panel>
