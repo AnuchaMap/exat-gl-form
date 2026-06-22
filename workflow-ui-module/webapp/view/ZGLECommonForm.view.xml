@@ -58,7 +58,7 @@
                
                 <headerToolbar>
                     <Toolbar height="2rem">
-                        <Title text="Accrual Object No" class="panelTitle" />
+                        <Title text="Accrual Object No." class="panelTitle" />
                     </Toolbar>
                 </headerToolbar>
                 <content>
