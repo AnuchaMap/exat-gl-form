@@ -27,6 +27,12 @@ sap.ui.define(
         this.getView().setModel(oViewModel, "view");
 
         this.onLoginChange();
+        
+        // กำหนดจำนวนรอบเริ่มต้นในการลองโหลดใหม่ (สูงสุด 5 รอบ)
+        this._iPdfRetryCount = 0;
+        this._iDmsRetryCount = 0;
+
+        // เรียกใช้งานครั้งแรกตอน Init
         this.onPreviewPdf();
       },
 
@@ -73,10 +79,12 @@ sap.ui.define(
         if (oContextModel) {
           setTimeout(
             function () {
-              // console.log("=== Full Context ===", JSON.stringify(oContextModel.getObject("/")));
-              // console.log("=== TransactionData ===", JSON.stringify(oContextModel.getProperty("/TransactionData")));
+              // ทุกครั้งที่ Context เปลี่ยน ให้รีเซ็ตจำนวนรอบกลับไปเริ่มนับ 1 ใหม่เพื่อลองโหลดข้อมูลของ context นั้น
+              this._iPdfRetryCount = 0;
+              this._iDmsRetryCount = 0;
+
               this._loadDmsAttachmentsOnly();
-              //this.onPreviewPdf();
+              this.onPreviewPdf(); // เปิดให้ทำงานที่นี่ด้วยเมื่อ context มั่นใจว่าเปลี่ยนจริง
               this._updateInboxActions();
               this._applyStatusStyle();
             }.bind(this),
@@ -85,7 +93,7 @@ sap.ui.define(
         }
       },
 
-      // ─── DMS Attachments ─────────────────────────────────────────────────
+      // ─── DMS Attachments (เพิ่มระบบ Retry 5 รอบ) ──────────────────────────
       _loadDmsAttachmentsOnly: function () {
         var oView = this.getView();
         var oViewModel = oView.getModel("view");
@@ -93,11 +101,15 @@ sap.ui.define(
           oView.getModel("context") ||
           this.getOwnerComponent().getModel("context");
 
-        if (!oViewModel || !oContextModel) return;
+        // ถ้าระบบยังโหลดโมเดลไม่เสร็จ ให้เข้าสู่กลไกสู้ชีวิต (Retry)
+        if (!oViewModel || !oContextModel) {
+          this._retryDmsLoad("โมเดลระบบยังไม่พร้อม");
+          return;
+        }
 
         var sFolderId = oContextModel.getProperty("/FolderID");
         if (!sFolderId || sFolderId === "undefined") {
-          oViewModel.setProperty("/Attachments", []);
+          this._retryDmsLoad("ยังไม่พบข้อมูล FolderID");
           return;
         }
 
@@ -121,37 +133,52 @@ sap.ui.define(
                   isFolder: oItem.isFolder,
                 };
               });
+              oViewModel.setProperty("/Attachments", aApiAttachments);
             } else {
-              MessageToast.show("ไม่พบไฟล์ใน Folder หรือโครงสร้าง API ไม่ตรง");
+              // ถ้า API ตอบกลับสำเร็จแต่ไม่มี items ให้ลองโหลดใหม่เผื่อข้อมูลฝั่ง server ยัง sync ไม่ทัน
+              this._retryDmsLoad("โครงสร้าง API ไม่พบรายการไฟล์");
             }
-            oViewModel.setProperty("/Attachments", aApiAttachments);
           }.bind(this),
           error: function (oError) {
             oView.setBusy(false);
             jQuery.sap.log.error(oError);
-            MessageToast.show("เกิดข้อผิดพลาดในการเชื่อมต่อเครือข่าย API");
-            oViewModel.setProperty("/Attachments", []);
+            this._retryDmsLoad("เกิดข้อผิดพลาดในการเชื่อมต่อเครือข่าย API");
           }.bind(this),
         });
       },
 
-      // ─── PDF Preview ──────────────────────────────────────────────────────
+      // ฟังก์ชันช่วยในการโหลด DMS ซ้ำ
+      _retryDmsLoad: function (sReason) {
+        var oViewModel = this.getView().getModel("view");
+        if (this._iDmsRetryCount < 5) {
+          this._iDmsRetryCount++;
+          console.log("DMS Retry ครั้งที่ " + this._iDmsRetryCount + " เนื่องจาก: " + sReason);
+          setTimeout(this._loadDmsAttachmentsOnly.bind(this), 1500); // รอ 1.5 วินาทีแล้วลองใหม่
+        } else {
+          this.getView().setBusy(false);
+          if (oViewModel) oViewModel.setProperty("/Attachments", []);
+          //MessageToast.show("โหลดรายการเอกสารแนบไม่สำเร็จหลังจากพยายาม 5 ครั้ง");
+        }
+      },
+
+
+      // ─── PDF Preview (เพิ่มระบบ Retry 5 รอบ) ──────────────────────────────
       onPreviewPdf: function () {
         var oView = this.getView();
         var oContextModel =
           oView.getModel("context") ||
           this.getOwnerComponent().getModel("context");
 
-        // ถ้ายังไม่มี context model (โหลดครั้งแรกก่อน context พร้อม) ให้ข้ามไป
-        if (!oContextModel) return;
+        // ถ้ารอบแรกโมเดลยังไม่มา ให้วิ่งเข้าฟังก์ชันลองใหม่ (Retry)
+        if (!oContextModel) {
+          this._retryPdfPreview("Context Model ยังไม่พร้อม");
+          return;
+        }
 
         var sPreviewFolderId = oContextModel.getProperty("/PreviewFolderID");
         
         if (!sPreviewFolderId || sPreviewFolderId === "undefined") {
-          this.getView().getModel("view").setProperty(
-            "/iframeContent",
-            "<div>ไม่พบเอกสาร Preview</div>"
-          );
+          this._retryPdfPreview("ยังไม่พบข้อมูล PreviewFolderID");
           return;
         }
 
@@ -165,42 +192,61 @@ sap.ui.define(
           method: "GET",
           dataType: "json",
           success: function (oData) {
-            oView.setBusy(false);
-
             if (oData && oData.success && oData.items && oData.items.length > 0) {
-              var sFileId = oData.items[0].id; // ✅ ใช้ id ตรงๆ
+              var sFileId = oData.items[0].id;
               var sBase64Url = "https://sbpa_helper.cfapps.ap10.hana.ondemand.com/api/dms/file/" + sFileId + "/base64";
 
               fetch(sBase64Url)
                 .then(function (res) { return res.json(); })
                 .then(function (oFileData) {
+                  oView.setBusy(false);
                   if (oFileData.success && oFileData.base64Data) {
                     this.loadPdf(oFileData.base64Data);
                   } else {
-                    MessageToast.show("โหลดไฟล์ Preview ไม่สำเร็จ");
+                    this._retryPdfPreview("ดึงข้อมูล Base64 ของไฟล์ไม่สำเร็จ");
                   }
                 }.bind(this))
                 .catch(function (err) {
+                  oView.setBusy(false);
                   jQuery.sap.log.error("Error fetching preview base64:", err);
-                  MessageToast.show("เกิดข้อผิดพลาดในการโหลด Preview");
-                });
+                  this._retryPdfPreview("เกิดข้อผิดพลาดในการดึง Base64");
+                }.bind(this));
             } else {
-              this.getView().getModel("view").setProperty(
-                "/iframeContent",
-                "<div>ไม่พบเอกสาร Preview ใน Folder</div>"
-              );
+              // ถ้าเรียกโฟลเดอร์สำเร็จแต่ของข้างในยังไม่มา ให้ลองใหม่
+              this._retryPdfPreview("ไม่พบไฟล์เอกสารด้านในโฟลเดอร์ Preview");
             }
           }.bind(this),
           error: function (oError) {
             oView.setBusy(false);
             jQuery.sap.log.error(oError);
-            MessageToast.show("เกิดข้อผิดพลาดในการโหลด Preview");
+            this._retryPdfPreview("เกิดข้อผิดพลาดของระบบเครือข่าย API");
           }.bind(this),
         });
       },
 
-      loadPdf: function (sBase64) {
+      // ฟังก์ชันช่วยในการโหลด PDF Preview ซ้ำ
+      _retryPdfPreview: function (sReason) {
+        var oViewModel = this.getView().getModel("view");
+        if (this._iPdfRetryCount < 5) {
+          this._iPdfRetryCount++;
+          console.log("PDF Preview Retry ครั้งที่ " + this._iPdfRetryCount + " เนื่องจาก: " + sReason);
+          
+          if (oViewModel) {
+            oViewModel.setProperty("/iframeContent", "<div>กำลังพยายามโหลดเอกสารใหม่... (ครั้งที่ " + this._iPdfRetryCount + "/5)</div>");
+          }
+          
+          // หน่วงเวลา 2 วินาทีเพื่อให้โอกาสระบบหลังบ้านส่งข้อมูลมาครบ แล้วค่อยสั่งรันฟังก์ชันเดิมซ้ำ
+          setTimeout(this.onPreviewPdf.bind(this), 2000); 
+        } else {
+          this.getView().setBusy(false);
+          if (oViewModel) {
+            oViewModel.setProperty("/iframeContent", "<div>ไม่พบเอกสาร Preview หรือโหลดเอกสารไม่สำเร็จเกิน 5 ครั้ง</div>");
+          }
+          //MessageToast.show("โหลดเอกสาร Preview ไม่สำเร็จหลังจากพยายาม 5 ครั้ง");
+        }
+      },
 
+      loadPdf: function (sBase64) {
         var byteCharacters = window.atob(sBase64);
         var byteArrays = [];
         for (var offset = 0; offset < byteCharacters.length; offset += 512) {
@@ -219,7 +265,6 @@ sap.ui.define(
           '" width="100%" height="595px" style="border: none; border-radius: 4px; display: block; max-width: 100%;"></iframe>';
 
         this.getView().getModel("view").setProperty("/iframeContent", sIframeHtml);
-
       },
 
       // ─── Login ────────────────────────────────────────────────────────────
