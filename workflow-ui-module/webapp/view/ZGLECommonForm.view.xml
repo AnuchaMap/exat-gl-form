@@ -2,86 +2,101 @@
     xmlns="sap.m"
     xmlns:core="sap.ui.core"
     xmlns:l="sap.ui.layout">
-    <VBox width="auto" class="sapUiResponsiveMargin">
-        <Panel headerText="Header Data" expandable="false" expanded="true" class="contentSectionPanel collapsibleHeaderPanel">
-            <headerToolbar>
-                <Toolbar height="2rem">
-                    <core:Icon src="sap-icon://accelerated" class="sapUiSmallMarginEnd" />
-                    <Title text="Header Data" class="panelTitle" />
-                </Toolbar>
-            </headerToolbar>
-            <content>
-                <l:Grid defaultSpan="XL4 L4 M4 S12" vSpacing="0" hSpacing="2" class="sapUiMediumPadding">
-                    <VBox class="sapUiSmallMarginBottom">
-                        <Text text="Request Number" class="labelGrey" />
-                        <Text text="{context>/RequestNo}" class="valueBlue" />
-                    </VBox>
-                    <VBox class="sapUiSmallMarginBottom">
-                        <Text text="Request Status" class="labelGrey" />
-                        <Text id="txtStatus" text="{context>/RequestStatus}" class="valueBlue" />
-                        <Text text="Workflow Type" class="labelGrey" />
-                        <Text text="{context>/WorkflowType}" class="valueBlue" />
-                    </VBox>
-                </l:Grid>
-            </content>
-        </Panel>
+    
+    <VBox width="100%" class="sapUiResponsiveMargin">
         
-        <Panel headerText="ผู้จัดทำ / ผู้อนุมัติ" expandable="false" expanded="true" class="contentSectionPanel collapsibleHeaderPanel">
-            <headerToolbar>
-                <Toolbar height="2rem">
-                    <core:Icon src="sap-icon://account" class="sapUiSmallMarginEnd" />
-                    <Title text="ผู้จัดทำ / ผู้อนุมัติ" class="panelTitle" />
-                </Toolbar>
-            </headerToolbar>
-            <content>
-                <l:Grid defaultSpan="XL6 L6 M6 S12" vSpacing="0" hSpacing="2" class="sapUiMediumPadding">
-                    <VBox class="sapUiSmallMarginBottom">
-                        <Text text="ผู้จัดทำ" class="labelGrey" />
-                        <Text text="{context>/Requester}" class="valueBlue" />
-                    </VBox>
-                    <VBox class="sapUiSmallMarginBottom">
-                        <Text text="ผู้อนุมัติ" class="labelGrey" />
-                        <Text text="{context>/Approver}" class="valueBlue" />
-                    </VBox>
-                </l:Grid>
-            </content>
-        </Panel>
+        <l:Grid defaultSpan="XL6 L6 M6 S12" vSpacing="0" class="sapUiNoContentPadding equalPanelHeight collapsibleHeaderPanel">
+            
+            <Panel headerText="Header Data" expandable="false" expanded="true" class="contentSectionPanel signaturePanel">
+                <headerToolbar>
+                    <Toolbar height="2rem">
+                        <core:Icon src="sap-icon://accelerated" class="sapUiSmallMarginEnd" />
+                        <Title text="Header Data" class="panelTitle" />
+                    </Toolbar>
+                </headerToolbar>
+                <content>
+                    <l:Grid defaultSpan="XL6 L6 M6 S12" vSpacing="0" hSpacing="2" class="sapUiMediumPadding">
+                        <VBox class="sapUiSmallMarginBottom">
+                            <Text text="Request Number" class="labelGrey" />
+                            <Text text="{context>/RequestNo}" class="valueBlue" />
+                        </VBox>
+                        <VBox class="sapUiSmallMarginBottom">
+                            <Text text="Request Status" class="labelGrey" />
+                            <ObjectStatus id="txtStatus" 
+                                          text="{= ${context>/IsReject} ? 'Reject' : (${context>/IsAllApproved} ? 'All Approved' : 'PENDING APPROVAL') }" 
+                                          state="{= ${context>/IsReject} ? 'Error' : (${context>/IsAllApproved} ? 'Success' : 'Information') }" />
+                        </VBox>
+                    </l:Grid>
+                </content>
+            </Panel>
 
-        <Panel expandable="false" expanded="true" class="contentSectionPanel collapsibleHeaderPanel">
-            <headerToolbar>
-                <Toolbar height="2rem">
-                    <core:Icon src="sap-icon://document" class="sapUiSmallMarginEnd" />
-                    <Title text="Preview Document" class="panelTitle" />
-                </Toolbar>
-            </headerToolbar>
-            <content>
-                <VBox class="sapUiMediumPadding">
-                    <core:HTML id="htmlPreview"
-                        content="{= ${view>/PreviewFile} ? '&lt;iframe src=\'' + ${view>/PreviewFile/fileUrl} + '\' style=\'width:100%;height:500px;border:0;display:block;overflow-y:scroll\'&gt;&lt;/iframe&gt;' : '&lt;p style=\'color:grey;padding:1rem\'&gt;ไม่มีเอกสาร preview&lt;/p&gt;' }" />
-                </VBox>
-            </content>
-        </Panel>
-      
-        <Panel expandable="false" expanded="true" class="contentSectionPanel signaturePanel">
-            <headerToolbar>
-                <Toolbar height="2rem">
-                    <core:Icon src="sap-icon://attachment" class="sapUiSmallMarginEnd" />
-                    <Title text="เอกสารแนบทั้งหมด" class="panelTitle" />
-                </Toolbar>
-            </headerToolbar>
-            <content>
-                <List id="fileList" items="{view>/Attachments}" noDataText="ไม่มีเอกสารแนบ">
-                    <items>
-                        <CustomListItem>
-                            <HBox alignItems="Center" class="sapUiSmallPadding">
-                                <core:Icon src="{view>fileIcon}" class="sapUiSmallMarginEnd" />
-                                <Link text="{view>fileName}" class="valueBlue" target="_blank" href="{view>fileUrl}" />
-                            </HBox>
-                        </CustomListItem>
-                    </items>
-                </List>
-            </content>
-        </Panel>
+            <Panel headerText="ผู้จัดทำ / ผู้อนุมัติ" expandable="false" expanded="true" class="contentSectionPanel signaturePanel">
+                <headerToolbar>
+                    <Toolbar height="2rem">
+                        <core:Icon src="sap-icon://account" class="sapUiSmallMarginEnd" />
+                        <Title text="ผู้จัดทำ / ผู้อนุมัติ" class="panelTitle" />
+                    </Toolbar>
+                </headerToolbar>
+                <content>
+                    <l:Grid defaultSpan="XL6 L6 M6 S12" vSpacing="0" hSpacing="2" class="sapUiMediumPadding">
+                        <VBox class="sapUiSmallMarginBottom">
+                            <Text text="ผู้จัดทำ" class="labelGrey" />
+                            <Text text="{context>/Requester}" class="valueBlue" />
+                        </VBox>
+                        <VBox class="sapUiSmallMarginBottom">
+                            <Text text="ผู้อนุมัติ" class="labelGrey" />
+                            <Text text="{context>/Approver}" class="valueBlue" />
+                        </VBox>
+                    </l:Grid>
+                </content>
+            </Panel>
+
+        </l:Grid>
+
+         <VBox class="sapUiResponsiveMargin" visible="{= ${context>/IsAllApproved} &amp;&amp; ${context>/WorkflowType} === 's301' }">
+            <Panel expandable="false" expanded="true" class="contentSectionPanel signaturePanel">
+               
+                <headerToolbar>
+                    <Toolbar height="2rem">
+                        <Title text="Accrual Object No." class="panelTitle" />
+                    </Toolbar>
+                </headerToolbar>
+                <content>
+                    <VBox class="sapUiMediumPadding">
+                        <Text text="{context>/TransactionData/Accrual/AccrualObjectNo}" wrapping="true" />
+                    </VBox>
+                </content>
+            </Panel>
+        </VBox>
+
+        <VBox class="sapUiResponsiveMargin">
+            <Panel expandable="false" expanded="true" class="contentSectionPanel signaturePanel">
+                <core:HTML content="{view>/iframeContent}" sanitizeContent="false" width="100%" />
+            </Panel>
+        </VBox>
+
+        <VBox class="sapUiResponsiveMargin sapUiMediumMarginBottom">
+            <Panel expandable="false" expanded="true" class="contentSectionPanel signaturePanel">
+                <headerToolbar>
+                    <Toolbar height="2rem">
+                        <core:Icon src="sap-icon://attachment" class="sapUiSmallMarginEnd" />
+                        <Title text="เอกสารแนบทั้งหมด" class="panelTitle" />
+                    </Toolbar>
+                </headerToolbar>
+                <content>
+                    <List id="fileList" items="{view>/Attachments}" noDataText="ไม่มีเอกสารแนบ">
+                        <items>
+                            <CustomListItem>
+                                <HBox alignItems="Center" class="sapUiSmallPadding">
+                                    <core:Icon src="{view>fileIcon}" class="sapUiSmallMarginEnd" />
+                                    <Link text="{view>fileName}" class="valueBlue" target="_blank" href="{view>fileUrl}" />
+                                </HBox>
+                            </CustomListItem>
+                        </items>
+                    </List>
+                </content>
+            </Panel>
+        </VBox>
     
     </VBox>
 </mvc:View>
