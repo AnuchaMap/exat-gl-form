@@ -84,12 +84,15 @@
                     </Toolbar>
                 </headerToolbar>
                 <content>
-                    <List id="fileList" items="{view>/Attachments}" noDataText="ไม่มีเอกสารแนบ">
+                    <List id="fileList"
+                          items="{view>/Attachments}"
+                          noDataText="ไม่มีเอกสารแนบ"
+                          mode="None">
                         <items>
-                            <CustomListItem>
+                            <CustomListItem type="Active">
                                 <HBox alignItems="Center" class="sapUiSmallPadding">
                                     <core:Icon src="{view>fileIcon}" class="sapUiSmallMarginEnd" />
-                                    <Link text="{view>fileName}" class="valueBlue" target="_blank" href="{view>fileUrl}" />
+                                    <Text text="{view>fileName}" class="valueBlue" />
                                 </HBox>
                             </CustomListItem>
                         </items>

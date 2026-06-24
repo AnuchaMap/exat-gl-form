@@ -27,12 +27,10 @@ sap.ui.define(
         this.getView().setModel(oViewModel, "view");
 
         this.onLoginChange();
-        
-        // กำหนดจำนวนรอบเริ่มต้นในการลองโหลดใหม่ (สูงสุด 5 รอบ)
+
         this._iPdfRetryCount = 0;
         this._iDmsRetryCount = 0;
 
-        // เรียกใช้งานครั้งแรกตอน Init
         this.onPreviewPdf();
       },
 
@@ -77,23 +75,47 @@ sap.ui.define(
           this.getOwnerComponent().getModel("context");
 
         if (oContextModel) {
-          setTimeout(
-            function () {
-              // ทุกครั้งที่ Context เปลี่ยน ให้รีเซ็ตจำนวนรอบกลับไปเริ่มนับ 1 ใหม่เพื่อลองโหลดข้อมูลของ context นั้น
-              this._iPdfRetryCount = 0;
-              this._iDmsRetryCount = 0;
+          setTimeout(function () {
+            this._iPdfRetryCount = 0;
+            this._iDmsRetryCount = 0;
 
-              this._loadDmsAttachmentsOnly();
-              this.onPreviewPdf(); // เปิดให้ทำงานที่นี่ด้วยเมื่อ context มั่นใจว่าเปลี่ยนจริง
-              this._updateInboxActions();
-              this._applyStatusStyle();
-            }.bind(this),
-            1000,
-          );
+            this._loadDmsAttachmentsOnly();
+            this.onPreviewPdf();
+            this._updateInboxActions();
+            this._applyStatusStyle();
+            this._attachFileListEvent();
+          }.bind(this), 1000);
         }
       },
 
-      // ─── DMS Attachments (เพิ่มระบบ Retry 5 รอบ) ──────────────────────────
+      // ─── Attach File List Event ───────────────────────────────────────────
+      _attachFileListEvent: function () {
+        var oNestedView = this.byId("nestedsCommon");
+        if (!oNestedView) return;
+
+        var oList = oNestedView.byId("fileList");
+        if (!oList) return;
+
+        oList.attachItemPress(function (oEvent) {
+          var oItem = oEvent.getParameter("listItem");
+          var oContext = oItem.getBindingContext("view");
+          var bIsDownloadable = oContext.getProperty("isDownloadable");
+          var sFileUrl = oContext.getProperty("fileUrl");
+
+          if (bIsDownloadable) {
+            this._downloadFileById(
+              oContext.getProperty("fileId"),
+              oContext.getProperty("fileName")
+            );
+          } else {
+            if (sFileUrl) {
+              window.open(sFileUrl, "_blank");
+            }
+          }
+        }.bind(this));
+      },
+
+      // ─── DMS Attachments ─────────────────────────────────────────────────
       _loadDmsAttachmentsOnly: function () {
         var oView = this.getView();
         var oViewModel = oView.getModel("view");
@@ -101,7 +123,6 @@ sap.ui.define(
           oView.getModel("context") ||
           this.getOwnerComponent().getModel("context");
 
-        // ถ้าระบบยังโหลดโมเดลไม่เสร็จ ให้เข้าสู่กลไกสู้ชีวิต (Retry)
         if (!oViewModel || !oContextModel) {
           this._retryDmsLoad("โมเดลระบบยังไม่พร้อม");
           return;
@@ -126,16 +147,20 @@ sap.ui.define(
             var aApiAttachments = [];
             if (oData && oData.success && oData.items) {
               aApiAttachments = oData.items.map(function (oItem) {
+                var sExt = (oItem.name || "").split(".").pop().toLowerCase();
+                var bIsDownloadable = ["xlsx", "xls", "doc", "docx", "csv"].indexOf(sExt) !== -1;
+
                 return {
                   fileName: oItem.name,
                   fileIcon: oItem.fileIcon,
                   fileUrl: oItem.previewUrl,
+                  fileId: oItem.id,
                   isFolder: oItem.isFolder,
+                  isDownloadable: bIsDownloadable,
                 };
               });
               oViewModel.setProperty("/Attachments", aApiAttachments);
             } else {
-              // ถ้า API ตอบกลับสำเร็จแต่ไม่มี items ให้ลองโหลดใหม่เผื่อข้อมูลฝั่ง server ยัง sync ไม่ทัน
               this._retryDmsLoad("โครงสร้าง API ไม่พบรายการไฟล์");
             }
           }.bind(this),
@@ -147,36 +172,94 @@ sap.ui.define(
         });
       },
 
-      // ฟังก์ชันช่วยในการโหลด DMS ซ้ำ
       _retryDmsLoad: function (sReason) {
         var oViewModel = this.getView().getModel("view");
         if (this._iDmsRetryCount < 5) {
           this._iDmsRetryCount++;
-          console.log("DMS Retry ครั้งที่ " + this._iDmsRetryCount + " เนื่องจาก: " + sReason);
-          setTimeout(this._loadDmsAttachmentsOnly.bind(this), 1500); // รอ 1.5 วินาทีแล้วลองใหม่
+          setTimeout(this._loadDmsAttachmentsOnly.bind(this), 1500);
         } else {
           this.getView().setBusy(false);
           if (oViewModel) oViewModel.setProperty("/Attachments", []);
-          //MessageToast.show("โหลดรายการเอกสารแนบไม่สำเร็จหลังจากพยายาม 5 ครั้ง");
         }
       },
 
+      // ─── Download File ────────────────────────────────────────────────────
+      _downloadFileById: function (sFileId, sFileName) {
+        var oView = this.getView();
 
-      // ─── PDF Preview (เพิ่มระบบ Retry 5 รอบ) ──────────────────────────────
+        if (!sFileId) {
+          MessageToast.show("ไม่พบ ID ของไฟล์");
+          return;
+        }
+
+        oView.setBusy(true);
+        var sBase64Url = "https://sbpa_helper.cfapps.ap10.hana.ondemand.com/api/dms/file/" + sFileId + "/base64";
+
+        fetch(sBase64Url)
+          .then(function (res) { return res.json(); })
+          .then(function (oFileData) {
+            oView.setBusy(false);
+
+            if (!oFileData.success || !oFileData.base64Data) {
+              MessageToast.show("ดึงข้อมูลไฟล์ไม่สำเร็จ");
+              return;
+            }
+
+            var byteCharacters = window.atob(oFileData.base64Data);
+            var byteArrays = [];
+            for (var offset = 0; offset < byteCharacters.length; offset += 512) {
+              var slice = byteCharacters.slice(offset, offset + 512);
+              var byteNumbers = new Array(slice.length);
+              for (var i = 0; i < slice.length; i++) {
+                byteNumbers[i] = slice.charCodeAt(i);
+              }
+              byteArrays.push(new Uint8Array(byteNumbers));
+            }
+
+            var sExt = (sFileName || "").split(".").pop().toLowerCase();
+            var mMimeTypes = {
+              "xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+              "xls":  "application/vnd.ms-excel",
+              "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+              "doc":  "application/msword",
+              "csv":  "text/csv",
+            };
+            var sMimeType = mMimeTypes[sExt] || "application/octet-stream";
+
+            var blob = new Blob(byteArrays, { type: sMimeType });
+            var blobUrl = URL.createObjectURL(blob);
+
+            var oLink = document.createElement("a");
+            oLink.href = blobUrl;
+            oLink.download = sFileName || "download";
+            document.body.appendChild(oLink);
+            oLink.click();
+            document.body.removeChild(oLink);
+
+            setTimeout(function () { URL.revokeObjectURL(blobUrl); }, 1000);
+            MessageToast.show("กำลังดาวน์โหลด: " + sFileName);
+          }.bind(this))
+          .catch(function (err) {
+            oView.setBusy(false);
+            jQuery.sap.log.error("Download error:", err);
+            MessageToast.show("เกิดข้อผิดพลาดในการดาวน์โหลด");
+          }.bind(this));
+      },
+
+      // ─── PDF Preview ──────────────────────────────────────────────────────
       onPreviewPdf: function () {
         var oView = this.getView();
         var oContextModel =
           oView.getModel("context") ||
           this.getOwnerComponent().getModel("context");
 
-        // ถ้ารอบแรกโมเดลยังไม่มา ให้วิ่งเข้าฟังก์ชันลองใหม่ (Retry)
         if (!oContextModel) {
           this._retryPdfPreview("Context Model ยังไม่พร้อม");
           return;
         }
 
         var sPreviewFolderId = oContextModel.getProperty("/PreviewFolderID");
-        
+
         if (!sPreviewFolderId || sPreviewFolderId === "undefined") {
           this._retryPdfPreview("ยังไม่พบข้อมูล PreviewFolderID");
           return;
@@ -212,7 +295,6 @@ sap.ui.define(
                   this._retryPdfPreview("เกิดข้อผิดพลาดในการดึง Base64");
                 }.bind(this));
             } else {
-              // ถ้าเรียกโฟลเดอร์สำเร็จแต่ของข้างในยังไม่มา ให้ลองใหม่
               this._retryPdfPreview("ไม่พบไฟล์เอกสารด้านในโฟลเดอร์ Preview");
             }
           }.bind(this),
@@ -224,25 +306,19 @@ sap.ui.define(
         });
       },
 
-      // ฟังก์ชันช่วยในการโหลด PDF Preview ซ้ำ
       _retryPdfPreview: function (sReason) {
         var oViewModel = this.getView().getModel("view");
         if (this._iPdfRetryCount < 5) {
           this._iPdfRetryCount++;
-          console.log("PDF Preview Retry ครั้งที่ " + this._iPdfRetryCount + " เนื่องจาก: " + sReason);
-          
           if (oViewModel) {
             oViewModel.setProperty("/iframeContent", "<div>กำลังพยายามโหลดเอกสารใหม่... (ครั้งที่ " + this._iPdfRetryCount + "/5)</div>");
           }
-          
-          // หน่วงเวลา 2 วินาทีเพื่อให้โอกาสระบบหลังบ้านส่งข้อมูลมาครบ แล้วค่อยสั่งรันฟังก์ชันเดิมซ้ำ
-          setTimeout(this.onPreviewPdf.bind(this), 2000); 
+          setTimeout(this.onPreviewPdf.bind(this), 2000);
         } else {
           this.getView().setBusy(false);
           if (oViewModel) {
             oViewModel.setProperty("/iframeContent", "<div>ไม่พบเอกสาร Preview หรือโหลดเอกสารไม่สำเร็จเกิน 5 ครั้ง</div>");
           }
-          //MessageToast.show("โหลดเอกสาร Preview ไม่สำเร็จหลังจากพยายาม 5 ครั้ง");
         }
       },
 
@@ -364,7 +440,7 @@ sap.ui.define(
         var bIsReject = oContextModel.getProperty("/IsReject");
         var bIsClose = oContextModel.getProperty("/IsClose");
 
-        if ((sToken.trim().length > 0  && !bIsAllApproved && !bIsReject) || bIsClose) {
+        if ((sToken.trim().length > 0 && !bIsAllApproved && !bIsReject) || bIsClose) {
           oInboxAPI.enableAction("approve");
           oInboxAPI.enableAction("reject");
         } else {
