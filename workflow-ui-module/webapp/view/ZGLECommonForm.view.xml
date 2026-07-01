@@ -53,7 +53,7 @@
 
         </l:Grid>
 
-         <VBox class="sapUiResponsiveMargin" visible="{= ${context>/IsAllApproved} &amp;&amp; ${context>/WorkflowType} === 's301' }">
+         <VBox width="100%" class="sapUiResponsiveMargin" visible="{= ${context>/IsAllApproved} &amp;&amp; ${context>/WorkflowType} === 's301' }">
             <Panel expandable="false" expanded="true" class="contentSectionPanel signaturePanel">
                
                 <headerToolbar>
@@ -69,13 +69,13 @@
             </Panel>
         </VBox>
 
-        <VBox class="sapUiResponsiveMargin">
+        <VBox width="100%" class="sapUiResponsiveMargin">
             <Panel expandable="false" expanded="true" class="contentSectionPanel signaturePanel">
                 <core:HTML content="{view>/iframeContent}" sanitizeContent="false" width="100%" />
             </Panel>
         </VBox>
 
-        <VBox class="sapUiResponsiveMargin sapUiMediumMarginBottom">
+        <VBox width="100%" class="sapUiResponsiveMargin sapUiMediumMarginBottom">
             <Panel expandable="false" expanded="true" class="contentSectionPanel signaturePanel">
                 <headerToolbar>
                     <Toolbar height="2rem">

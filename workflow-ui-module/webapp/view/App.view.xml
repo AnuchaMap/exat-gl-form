@@ -31,7 +31,10 @@
                         <VBox height="1rem" />
                         <VBox width="100%" class="sapUiResponsiveMargin">
                             <l:Grid defaultSpan="XL6 L6 M6 S12" vSpacing="0" class="sapUiNoContentPadding equalPanelHeight collapsibleHeaderPanel">
-                                
+
+                                <!-- ═══════════════════════════════════════════════════════════════
+                                     ปิดใช้งาน Digital Signature แล้ว (ไม่ต้องลงนามอีกต่อไป)
+                                     คอมเมนต์เก็บไว้เผื่อต้องกลับมาใช้งานใหม่ในอนาคต
                                 <Panel visible="{= !${context>/IsAllApproved} &amp;&amp; !${context>/IsReject} }" headerText="Digital Signature" expandable="false" expanded="true" class="contentSectionPanel signaturePanel">
                                     <headerToolbar>
                                         <Toolbar height="2rem">
@@ -63,8 +66,12 @@
                                         </VBox>
                                     </content>
                                 </Panel>
+                                ═══════════════════════════════════════════════════════════════ -->
 
-                                <Panel visible="{= !${context>/IsAllApproved} &amp;&amp; !${context>/IsReject} }" headerText="Approver Comment" expandable="false" expanded="true" class="contentSectionPanel generalPanel">
+                                <Panel visible="{= !${context>/IsAllApproved} &amp;&amp; !${context>/IsReject} }" headerText="Approver Comment" expandable="false" expanded="true" class="contentSectionPanel signaturePanel">
+                                    <layoutData>
+                                        <l:GridData span="XL12 L12 M12 S12" />
+                                    </layoutData>
                                     <headerToolbar>
                                         <Toolbar height="2rem">
                                             <core:Icon src="sap-icon://comment" class="sapUiSmallMarginEnd" />
@@ -95,11 +102,11 @@
                                         </VBox>
                                     </content>
                                 </Panel>
-                        
+
                             </l:Grid>
-                            
+
                         </VBox>
-                        
+
                     </VBox>
                 </FlexBox>
             </content>

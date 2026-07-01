@@ -26,7 +26,9 @@ sap.ui.define(
         });
         this.getView().setModel(oViewModel, "view");
 
-        this.onLoginChange();
+        // ปิดใช้งาน Digital Signature แล้ว (ไม่ต้องลงนามอีกต่อไป)
+        // คอมเมนต์เก็บไว้เผื่อต้องกลับมาใช้งานใหม่ในอนาคต
+        // this.onLoginChange();
 
         this._iPdfRetryCount = 0;
         this._iDmsRetryCount = 0;
@@ -343,7 +345,10 @@ sap.ui.define(
         this.getView().getModel("view").setProperty("/iframeContent", sIframeHtml);
       },
 
-      // ─── Login ────────────────────────────────────────────────────────────
+      // ─── Login (Digital Signature) ────────────────────────────────────────
+      // ปิดใช้งาน Digital Signature แล้ว (ไม่ต้องลงนามอีกต่อไป)
+      // คอมเมนต์ฟังก์ชันทั้งหมดเก็บไว้เผื่อต้องกลับมาใช้งานใหม่ในอนาคต
+      /*
       onLoginChange: function () {
         var oView = this.getView();
         var sUsername = oView.byId("usernameInput")
@@ -420,6 +425,7 @@ sap.ui.define(
           }.bind(this),
         });
       },
+      */
 
       // ─── Inbox Actions ────────────────────────────────────────────────────
       _updateInboxActions: function () {
@@ -435,12 +441,25 @@ sap.ui.define(
           this.getView().getModel("context") ||
           this.getOwnerComponent().getModel("context");
 
-        var sToken = oContextModel.getProperty("/SignatureToken") || "";
         var bIsAllApproved = oContextModel.getProperty("/IsAllApproved");
         var bIsReject = oContextModel.getProperty("/IsReject");
         var bIsClose = oContextModel.getProperty("/IsClose");
 
+        // เดิม: ต้องมี Signature Token ก่อนถึงจะเปิดปุ่ม Approve/Reject
+        // ปิดใช้งาน Digital Signature แล้ว คอมเมนต์เก็บไว้เผื่อต้องกลับมาใช้งานใหม่
+        /*
+        var sToken = oContextModel.getProperty("/SignatureToken") || "";
         if ((sToken.trim().length > 0 && !bIsAllApproved && !bIsReject) || bIsClose) {
+          oInboxAPI.enableAction("approve");
+          oInboxAPI.enableAction("reject");
+        } else {
+          oInboxAPI.disableAction("approve");
+          oInboxAPI.disableAction("reject");
+        }
+        */
+
+        // ใหม่: ไม่ต้องเช็ค Signature Token แล้ว เปิดปุ่มตามสถานะ Pending/Close อย่างเดียว
+        if ((!bIsAllApproved && !bIsReject) || bIsClose) {
           oInboxAPI.enableAction("approve");
           oInboxAPI.enableAction("reject");
         } else {
