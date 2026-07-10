@@ -62,7 +62,7 @@
                     </Toolbar>
                 </headerToolbar>
                 <content>
-                    <VBox class="sapUiMediumPadding">
+                    <VBox class="sapUiMediumPadding sapUiSmallMarginBegin">
                         <Text text="{context>/TransactionData/Accrual/AccrualObjectNo}" wrapping="true" />
                     </VBox>
                 </content>
@@ -90,7 +90,7 @@
                           mode="None">
                         <items>
                             <CustomListItem type="Active">
-                                <HBox alignItems="Center" class="sapUiSmallPadding">
+                                <HBox alignItems="Center" class="sapUiSmallPadding sapUiSmallMarginBegin">
                                     <core:Icon src="{view>fileIcon}" class="sapUiSmallMarginEnd" />
                                     <Text text="{view>fileName}" class="valueBlue" />
                                 </HBox>

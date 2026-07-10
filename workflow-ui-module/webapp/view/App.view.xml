@@ -17,7 +17,7 @@
                         <VBox height="1rem" />
                         <Panel expandable="false" expanded="true" class="contentSectionPanel signaturePanel">
                             <content>
-                                <VBox class="sapUiMediumPadding">
+                                <VBox class="sapUiMediumPadding sapUiSmallMarginBegin">
                                     <Title text="{context>/WorkflowDesc}"
                                            level="H5"
                                            titleStyle="H5"
@@ -80,7 +80,6 @@
                                     </headerToolbar>
                                     <content>
                                         <VBox class="sapUiMediumPadding">
-                                            <Label text="Comment" class="customLabel" />
                                             <TextArea width="100%" rows="7" placeholder="ใส่ความคิดเห็นหรือหมายเหตุเพิ่มเติมที่นี่..." id="approverComment" value="{context>/ApproverComment}" valueLiveUpdate="true" liveChange=".onCommentLiveChange" />
                                         </VBox>
                                     </content>
@@ -97,7 +96,7 @@
                                         </Toolbar>
                                     </headerToolbar>
                                     <content>
-                                        <VBox class="sapUiMediumPadding">
+                                        <VBox class="sapUiMediumPadding sapUiSmallMarginBegin">
                                             <Text text="{= ${context>/ApproverComment} ? ${context>/ApproverComment} : '-' }" wrapping="true" />
                                         </VBox>
                                     </content>

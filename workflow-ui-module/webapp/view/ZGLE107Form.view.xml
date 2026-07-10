@@ -59,7 +59,7 @@
                     </Toolbar>
                 </headerToolbar>
                 <content>
-                    <VBox class="sapUiMediumPadding">
+                    <VBox class="sapUiMediumPadding sapUiSmallMarginBegin">
                         <Text text="Terminate Accrual Object No" class="labelGrey" />
                         <Text text="{context>/TransactionData/Accrual/TermiateAccrualObjectNo}" wrapping="true" class="valueBlue sapUiSmallMarginBottom" />
 
@@ -70,14 +70,14 @@
                     <ScrollContainer height="300px" vertical="true" width="100%">
                         <Table items="{context>/TransactionData/Accrual/AccrualObject}" class="customTable smallFontTable" inset="false" width="100%">
                             <columns>
-                                <Column hAlign="Begin"><Text text="Accrual Object No" wrapping="false" /></Column>
-                                <Column hAlign="Begin"><Text text="Account" wrapping="false" /></Column>
-                                <Column hAlign="Begin"><Text text="Description" wrapping="false" /></Column>
-                                <Column hAlign="Begin"><Text text="Accr. Ac" wrapping="false" /></Column>
-                                <Column hAlign="Begin"><Text text="Description" wrapping="false" /></Column>
-                                <Column hAlign="Begin"><Text text="Start Date" wrapping="false" /></Column>
-                                <Column hAlign="Begin"><Text text="End Date" wrapping="false" /></Column>
-                                <Column hAlign="End"><Text text="Amount" wrapping="false" /></Column>
+                                <Column hAlign="Begin" width="12%"><Text text="Accrual Object No" wrapping="false" /></Column>
+                                <Column hAlign="Begin" width="9%"><Text text="Account" wrapping="false" /></Column>
+                                <Column hAlign="Begin" width="20%"><Text text="Description" wrapping="false" /></Column>
+                                <Column hAlign="Begin" width="9%"><Text text="Accr. Acc" wrapping="false" /></Column>
+                                <Column hAlign="Begin" width="20%"><Text text="Description" wrapping="false" /></Column>
+                                <Column hAlign="Begin" width="10%"><Text text="Start Date" wrapping="false" /></Column>
+                                <Column hAlign="Begin" width="10%"><Text text="End Date" wrapping="false" /></Column>
+                                <Column hAlign="End" width="10%"><Text text="Amount" wrapping="false" /></Column>
                             </columns>
                             <items>
                                 <ColumnListItem type="Active" vAlign="Middle">
@@ -96,7 +96,7 @@
                         </Table>
                     </ScrollContainer>
 
-                    <VBox class="sapUiMediumPadding">
+                    <VBox class="sapUiMediumPadding sapUiSmallMarginBegin">
                         <Text text="Reason" class="labelGrey" />
                         <Text text="{context>/TransactionData/Accrual/Reason}" class="valueBlue" />
                     </VBox>
