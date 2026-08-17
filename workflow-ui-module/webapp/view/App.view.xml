@@ -96,7 +96,7 @@
                                         </Toolbar>
                                     </headerToolbar>
                                     <content>
-                                        <VBox class="sapUiMediumPadding sapUiSmallMarginBegin">
+                                        <VBox class="sapUiMediumPadding sapUiSmallMarginBegin sapUiSmallMarginBottom">
                                             <Text text="{= ${context>/ApproverComment} ? ${context>/ApproverComment} : '-' }" wrapping="true" />
                                         </VBox>
                                     </content>

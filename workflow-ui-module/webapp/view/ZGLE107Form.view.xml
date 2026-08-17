@@ -96,7 +96,7 @@
                         </Table>
                     </ScrollContainer>
 
-                    <VBox class="sapUiMediumPadding sapUiSmallMarginBegin">
+                    <VBox class="sapUiMediumPadding sapUiSmallMarginBegin sapUiSmallMarginBottom">
                         <Text text="Reason" class="labelGrey" />
                         <Text text="{context>/TransactionData/Accrual/Reason}" class="valueBlue" />
                     </VBox>
